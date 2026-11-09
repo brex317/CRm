@@ -1,0 +1,936 @@
+@if (lead(); as l) {
+  <div class="space-y-6 animate-fadeIn pb-12">
+    
+    <!-- Top Action Bar & Back Navigation -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[var(--ln)]">
+      <div class="flex items-center gap-3">
+        <a routerLink="/leads" class="btn bo text-xs py-2 px-3.5 rounded-xl font-bold flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <i class="mi text-base">arrow_back</i> Back to Leads
+        </a>
+        <div class="h-6 w-px bg-[var(--ln)]"></div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-bold tracking-wider text-[var(--mu)] uppercase">CRM / LEAD MANAGEMENT</span>
+            <span class="font-mono text-xs font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-[var(--pr)] border border-blue-200 dark:border-blue-800">
+              {{ l.lead_code }}
+            </span>
+          </div>
+          <h1 class="text-xl sm:text-2xl font-black text-[var(--hd)] tracking-tight mt-0.5">{{ l.lead_name }}</h1>
+        </div>
+      </div>
+
+      <!-- Action Buttons Bar -->
+      <div class="flex items-center gap-2 flex-wrap">
+        
+        <!-- Convert (Available for Qualified) -->
+        @if (l.status === 'Qualified') {
+          <button (click)="openConvertModal()" class="btn bp text-xs py-2 px-4 rounded-xl font-bold flex items-center gap-1.5 shadow-sm bg-purple-600 hover:bg-purple-700">
+            <i class="mi text-base">trending_up</i> Convert to Opportunity
+          </button>
+        }
+
+        <!-- BANT Qualify (Available for Contacted, Nurturing, Qualified) -->
+        @if (l.status === 'Contacted' || l.status === 'Nurturing' || l.status === 'Qualified') {
+          <button (click)="openBantModal()" class="btn bo text-xs py-2 px-3.5 rounded-xl font-bold flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+            <i class="mi text-base">verified</i> {{ l.status === 'Qualified' ? 'BANT Assessment' : 'Qualify Lead' }}
+          </button>
+        }
+
+        <!-- Schedule Follow-Up -->
+        @if (l.status !== 'Converted' && l.status !== 'Unqualified') {
+          <button (click)="openFollowUpModal()" class="btn bo text-xs py-2 px-3 rounded-xl font-medium flex items-center gap-1.5">
+            <i class="mi text-base">event</i> Follow-up
+          </button>
+        }
+
+        <!-- Log Activity -->
+        @if (l.status !== 'Converted') {
+          <button (click)="isLogActivityOpen.set(!isLogActivityOpen())" class="btn bo text-xs py-2 px-3 rounded-xl font-medium flex items-center gap-1.5">
+            <i class="mi text-base">add_task</i> Log Activity
+          </button>
+        }
+
+        <!-- Reopen (Available for Unqualified) -->
+        @if (l.status === 'Unqualified') {
+          <button (click)="openReopenModal()" class="btn bp text-xs py-2 px-3.5 rounded-xl font-bold flex items-center gap-1.5">
+            <i class="mi text-base">replay</i> Reopen Lead
+          </button>
+        }
+
+        <!-- Disqualify (Available for active leads) -->
+        @if (l.status !== 'Converted' && l.status !== 'Unqualified') {
+          <button (click)="openDisqualifyModal()" class="btn bo text-xs py-2 px-3 rounded-xl font-medium text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30">
+            <i class="mi text-base">cancel</i> Disqualify
+          </button>
+        }
+
+      </div>
+    </div>
+
+    <!-- Status Badges Strip -->
+    <div class="flex flex-wrap items-center gap-2.5">
+      
+      <!-- Status Pill -->
+      @if (l.status === 'Qualified') {
+        <span class="status-pill active text-xs px-3 py-1">
+          <i class="mi text-sm">verified</i> QUALIFIED (READY TO CONVERT)
+        </span>
+      } @else if (l.status === 'Contacted') {
+        <span class="status-pill pending text-xs px-3 py-1">
+          <i class="mi text-sm">chat</i> CONTACTED (DISCOVERY IN PROGRESS)
+        </span>
+      } @else if (l.status === 'Nurturing') {
+        <span class="status-pill text-amber-700 bg-amber-50 dark:text-amber-300 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs px-3 py-1">
+          <i class="mi text-sm">hourglass_empty</i> NURTURING
+        </span>
+      } @else if (l.status === 'New') {
+        <span class="status-pill text-blue-700 bg-blue-50 dark:text-blue-300 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-xs px-3 py-1">
+          <i class="mi text-sm">fiber_new</i> NEW INTAKE
+        </span>
+      } @else if (l.status === 'Converted') {
+        <span class="status-pill text-purple-700 bg-purple-50 dark:text-purple-300 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 text-xs px-3 py-1">
+          <i class="mi text-sm">task_alt</i> CONVERTED TO OPPORTUNITY: {{ l.opportunity_code || 'OPP-2026' }}
+        </span>
+      } @else {
+        <span class="status-pill inactive text-xs px-3 py-1">
+          <i class="mi text-sm">block</i> UNQUALIFIED
+        </span>
+      }
+
+      <!-- Source Channel -->
+      <span class="cat-pill text-xs font-bold px-3 py-1">
+        Channel: {{ l.source_channel }}
+      </span>
+
+      <!-- Rating & Priority -->
+      @if (l.rating) {
+        <span class="text-xs px-2.5 py-1 rounded-full font-bold border"
+              [ngClass]="{
+                'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300': l.rating === 'Hot',
+                'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300': l.rating === 'Warm',
+                'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300': l.rating === 'Cold'
+              }">
+          Rating: {{ l.rating }}
+        </span>
+      }
+
+      <span class="text-xs px-2.5 py-1 rounded-full font-bold border"
+            [ngClass]="{
+              'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300': l.priority === 'High',
+              'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300': l.priority === 'Medium',
+              'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300': l.priority === 'Low'
+            }">
+        Priority: {{ l.priority }}
+      </span>
+
+      <!-- Assigned Rep -->
+      <span class="text-xs px-3 py-1 rounded-full bg-[var(--chip-bg)] text-[var(--hd)] border border-[var(--ln)] flex items-center gap-1.5 font-medium">
+        <i class="mi text-sm text-[var(--pr)]">person</i>
+        Owner: {{ l.assigned_to_name || 'Unassigned' }}
+      </span>
+    </div>
+
+    <!-- 4 Top KPI Metric Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- Estimated Value -->
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-card-val text-xl sm:text-2xl font-black text-[var(--ok)]">
+            ETB {{ (l.estimated_value ? (l.estimated_value / 1000000) : 0) | number:'1.1-2' }}M
+          </div>
+          <div class="kpi-card-lbl">Estimated Potential</div>
+        </div>
+        <div class="kpi-icon-badge bg-emerald-50 dark:bg-[#14382a] text-emerald-600 dark:text-emerald-400">
+          <i class="mi text-2xl">payments</i>
+        </div>
+      </div>
+
+      <!-- Follow-up Schedule -->
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-card-val text-xl sm:text-2xl font-black font-mono"
+               [class.text-rose-600]="isFollowUpOverdue(l.follow_up_date, l.status)">
+            {{ l.follow_up_date || 'None' }}
+          </div>
+          <div class="kpi-card-lbl">
+            {{ isFollowUpOverdue(l.follow_up_date, l.status) ? 'Overdue Follow-up' : 'Next Scheduled Contact' }}
+          </div>
+        </div>
+        <div class="kpi-icon-badge bg-blue-50 dark:bg-[#162a4a] text-blue-600 dark:text-sky-400">
+          <i class="mi text-2xl">event</i>
+        </div>
+      </div>
+
+      <!-- BANT Score -->
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-card-val text-xl sm:text-2xl font-black" [class.text-[var(--pr)]]="l.qualification">
+            {{ l.qualification ? l.qualification.qualification_outcome : 'Pending' }}
+          </div>
+          <div class="kpi-card-lbl">BANT Qualification</div>
+        </div>
+        <div class="kpi-icon-badge bg-purple-50 dark:bg-[#2a1a4a] text-purple-600 dark:text-purple-400">
+          <i class="mi text-2xl">verified</i>
+        </div>
+      </div>
+
+      <!-- Consent Status -->
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-card-val text-xl sm:text-2xl font-black" [class.text-[var(--ok)]]="l.consent_status === 'Given'">
+            {{ l.consent_status }}
+          </div>
+          <div class="kpi-card-lbl">Commercial Consent</div>
+        </div>
+        <div class="kpi-icon-badge bg-amber-50 dark:bg-[#3b2f12] text-amber-600 dark:text-amber-400">
+          <i class="mi text-2xl">shield</i>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Quick Section Navigation Bar -->
+    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-[var(--ln)]">
+      <button (click)="setSection('all')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors whitespace-nowrap"
+              [class.bg-[var(--pr)]]="activeSection() === 'all'"
+              [class.text-white]="activeSection() === 'all'"
+              [class.text-[var(--mu)]]="activeSection() !== 'all'"
+              [class.hover:text-[var(--hd)]]="activeSection() !== 'all'">
+        All Sections
+      </button>
+      <button (click)="setSection('general')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap"
+              [class.bg-[var(--pr)]]="activeSection() === 'general'"
+              [class.text-white]="activeSection() === 'general'"
+              [class.text-[var(--mu)]]="activeSection() !== 'general'">
+        General Info
+      </button>
+      <button (click)="setSection('source')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap"
+              [class.bg-[var(--pr)]]="activeSection() === 'source'"
+              [class.text-white]="activeSection() === 'source'"
+              [class.text-[var(--mu)]]="activeSection() !== 'source'">
+        Lead Source
+      </button>
+      <button (click)="setSection('company')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap"
+              [class.bg-[var(--pr)]]="activeSection() === 'company'"
+              [class.text-white]="activeSection() === 'company'"
+              [class.text-[var(--mu)]]="activeSection() !== 'company'">
+        Company &amp; Contact
+      </button>
+      <button (click)="setSection('product')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap"
+              [class.bg-[var(--pr)]]="activeSection() === 'product'"
+              [class.text-white]="activeSection() === 'product'"
+              [class.text-[var(--mu)]]="activeSection() !== 'product'">
+        Interested Products
+      </button>
+      <button (click)="setSection('bant')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap"
+              [class.bg-[var(--pr)]]="activeSection() === 'bant'"
+              [class.text-white]="activeSection() === 'bant'"
+              [class.text-[var(--mu)]]="activeSection() !== 'bant'">
+        BANT Qualification
+      </button>
+      <button (click)="setSection('activities')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap"
+              [class.bg-[var(--pr)]]="activeSection() === 'activities'"
+              [class.text-white]="activeSection() === 'activities'"
+              [class.text-[var(--mu)]]="activeSection() !== 'activities'">
+        Activities ({{ l.activities?.length || 0 }})
+      </button>
+      <button (click)="setSection('documents')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap"
+              [class.bg-[var(--pr)]]="activeSection() === 'documents'"
+              [class.text-white]="activeSection() === 'documents'"
+              [class.text-[var(--mu)]]="activeSection() !== 'documents'">
+        Documents ({{ l.documents?.length || 0 }})
+      </button>
+      <button (click)="setSection('history')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap"
+              [class.bg-[var(--pr)]]="activeSection() === 'history'"
+              [class.text-white]="activeSection() === 'history'"
+              [class.text-[var(--mu)]]="activeSection() !== 'history'">
+        History Log ({{ l.history?.length || 0 }})
+      </button>
+    </div>
+
+    <!-- MAIN BODY GRID -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- LEFT 2 COLUMNS: Core Data, BANT, Activities -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- ===================================================================
+             SECTION 1: GENERAL INFORMATION
+             =================================================================== -->
+        @if (activeSection() === 'all' || activeSection() === 'general') {
+          <div class="erp-card-container p-6">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--mu)] mb-4 flex items-center gap-2">
+              <i class="mi text-base text-[var(--pr)]">info</i> General Information &amp; Governance
+            </h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+              <div class="p-4 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)]">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--mu)] block mb-1">Lead Reference Code</span>
+                <b class="text-sm font-mono text-[var(--hd)]">{{ l.lead_code }}</b>
+              </div>
+              <div class="p-4 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)]">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--mu)] block mb-1">Assigned Sales Owner</span>
+                <b class="text-sm text-[var(--hd)] flex items-center gap-1.5">
+                  <i class="mi text-base text-[var(--pr)]">person</i> {{ l.assigned_to_name || 'Unassigned' }}
+                </b>
+              </div>
+              <div class="p-4 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)]">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--mu)] block mb-1">First Contact Date</span>
+                <span class="text-sm text-[var(--hd)] font-mono">{{ l.first_contact_date || 'Not yet contacted' }}</span>
+              </div>
+              <div class="p-4 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)]">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--mu)] block mb-1">Last Activity Logged</span>
+                <span class="text-sm text-[var(--hd)] font-mono">{{ l.last_activity_date || 'No recent activity' }}</span>
+              </div>
+            </div>
+
+            <!-- Notes Editor -->
+            <form [formGroup]="noteForm" (ngSubmit)="saveNote()" class="space-y-2">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold uppercase tracking-wider text-[var(--mu)] flex items-center gap-1.5">
+                  <i class="mi text-base text-amber-500">description</i> Internal Brief &amp; Working Notes
+                </label>
+                <button type="submit" class="btn bp text-xs py-1 px-3 rounded-lg font-bold">
+                  Save Notes
+                </button>
+              </div>
+              <textarea 
+                formControlName="note" 
+                rows="3" 
+                placeholder="Log internal considerations, negotiation constraints, or deal background..." 
+                class="w-full text-xs p-3 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] text-[var(--hd)] outline-none focus:border-[var(--pr)]"></textarea>
+            </form>
+          </div>
+        }
+
+        <!-- ===================================================================
+             SECTION 5: BANT QUALIFICATION
+             =================================================================== -->
+        @if (activeSection() === 'all' || activeSection() === 'bant') {
+          <div class="erp-card-container p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--mu)] flex items-center gap-2">
+                  <i class="mi text-base text-emerald-600">verified</i> BANT Qualification Framework
+                </h3>
+                <span class="text-xs text-[var(--tx)]">Budget &bull; Authority &bull; Need &bull; Timeline evaluation before Opportunity hand-over</span>
+              </div>
+              <button (click)="openBantModal()" class="btn bo text-xs py-1.5 px-3 rounded-xl font-bold flex items-center gap-1">
+                <i class="mi text-sm">edit</i> {{ l.qualification ? 'Edit Assessment' : 'Perform Assessment' }}
+              </button>
+            </div>
+
+            @if (l.qualification; as q) {
+              <div class="space-y-3.5">
+                
+                <!-- 4 Criteria Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  
+                  <!-- Budget -->
+                  <div class="p-3.5 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)]">
+                    <div class="flex items-center justify-between mb-1.5">
+                      <b class="text-xs text-[var(--hd)] flex items-center gap-1.5">
+                        <i class="mi text-base text-[var(--pr)]">account_balance_wallet</i> Budget
+                      </b>
+                      <span class="status-pill text-[10px] px-2 py-0.5"
+                            [ngClass]="q.budget_criterion === 'Confirmed' ? 'active' : 'pending'">
+                        {{ q.budget_criterion }}
+                      </span>
+                    </div>
+                    <p class="text-xs text-[var(--tx)] leading-relaxed">{{ q.budget_evidence }}</p>
+                  </div>
+
+                  <!-- Authority -->
+                  <div class="p-3.5 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)]">
+                    <div class="flex items-center justify-between mb-1.5">
+                      <b class="text-xs text-[var(--hd)] flex items-center gap-1.5">
+                        <i class="mi text-base text-purple-600">badge</i> Authority
+                      </b>
+                      <span class="status-pill text-[10px] px-2 py-0.5"
+                            [ngClass]="q.authority_criterion === 'Confirmed' ? 'active' : 'pending'">
+                        {{ q.authority_criterion }}
+                      </span>
+                    </div>
+                    <p class="text-xs text-[var(--tx)] leading-relaxed">{{ q.authority_evidence }}</p>
+                  </div>
+
+                  <!-- Need -->
+                  <div class="p-3.5 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)]">
+                    <div class="flex items-center justify-between mb-1.5">
+                      <b class="text-xs text-[var(--hd)] flex items-center gap-1.5">
+                        <i class="mi text-base text-emerald-600">report_problem</i> Need
+                      </b>
+                      <span class="status-pill text-[10px] px-2 py-0.5"
+                            [ngClass]="q.need_criterion === 'Confirmed' ? 'active' : 'pending'">
+                        {{ q.need_criterion }}
+                      </span>
+                    </div>
+                    <p class="text-xs text-[var(--tx)] leading-relaxed">{{ q.need_evidence }}</p>
+                  </div>
+
+                  <!-- Timeline -->
+                  <div class="p-3.5 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)]">
+                    <div class="flex items-center justify-between mb-1.5">
+                      <b class="text-xs text-[var(--hd)] flex items-center gap-1.5">
+                        <i class="mi text-base text-amber-600">event_available</i> Timeline
+                      </b>
+                      <span class="status-pill text-[10px] px-2 py-0.5"
+                            [ngClass]="q.timeline_criterion === 'Confirmed' ? 'active' : 'pending'">
+                        {{ q.timeline_criterion }}
+                      </span>
+                    </div>
+                    <p class="text-xs text-[var(--tx)] leading-relaxed">{{ q.timeline_evidence }}</p>
+                  </div>
+
+                </div>
+
+                <!-- Final Evaluation Banner -->
+                <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+                  <div class="flex items-center justify-between mb-1">
+                    <b class="text-xs text-emerald-900 dark:text-emerald-300 font-bold flex items-center gap-1.5">
+                      <i class="mi text-base text-emerald-600">verified</i> Outcome: {{ q.qualification_outcome }}
+                    </b>
+                    <span class="text-[11px] text-[var(--mu)]">Assessed by {{ q.assessed_by }} on {{ q.assessed_date }}</span>
+                  </div>
+                  <p class="text-xs text-[var(--tx)] italic mt-1 leading-relaxed">
+                    "{{ q.evidence_summary }}"
+                  </p>
+                </div>
+
+              </div>
+            } @else {
+              <div class="p-6 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] text-center">
+                <i class="mi text-3xl text-[var(--mu)] mb-2">fact_check</i>
+                <b class="text-sm text-[var(--hd)] block mb-1">No BANT Assessment Performed Yet</b>
+                <p class="text-xs text-[var(--tx)] max-w-md mx-auto mb-3">
+                  Evaluate Budget, Authority, Need, and Timeline to determine whether this lead is Qualified to become a Sales Opportunity.
+                </p>
+                <button (click)="openBantModal()" class="btn bp text-xs py-2 px-4 rounded-xl font-bold">
+                  Start BANT Evaluation
+                </button>
+              </div>
+            }
+
+          </div>
+        }
+
+        <!-- ===================================================================
+             SECTION 6: ACTIVITIES & COMMUNICATION (Emails, Calls, Meetings, Tasks)
+             =================================================================== -->
+        @if (activeSection() === 'all' || activeSection() === 'activities') {
+          <div class="erp-card-container p-6 space-y-4">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--mu)] flex items-center gap-2">
+                  <i class="mi text-base text-[var(--pr)]">chat</i> Activities &amp; Communication
+                </h3>
+                <span class="text-xs text-[var(--tx)]">Calls, meetings, emails, tasks, follow-ups, and interaction log</span>
+              </div>
+              <button (click)="isLogActivityOpen.set(!isLogActivityOpen())" class="btn bp text-xs py-1.5 px-3.5 rounded-xl font-bold flex items-center gap-1 shadow-xs">
+                <i class="mi text-base">add</i> Log Interaction
+              </button>
+            </div>
+
+            <!-- Inline Log Activity Form -->
+            @if (isLogActivityOpen()) {
+              <form [formGroup]="activityForm" (ngSubmit)="submitActivity()" class="p-4 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] space-y-3 animate-fadeIn">
+                <div class="flex items-center justify-between pb-2 border-b border-[var(--ln)]">
+                  <b class="text-xs text-[var(--hd)]">Record New Interaction</b>
+                  <button type="button" (click)="isLogActivityOpen.set(false)" class="text-xs text-[var(--mu)] hover:text-[var(--hd)]">Cancel</button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div class="ff">
+                    <label>Activity Type</label>
+                    <select formControlName="activity_type">
+                      <option value="Call">Call</option>
+                      <option value="Meeting">Meeting</option>
+                      <option value="Email">Email</option>
+                      <option value="Task">Task</option>
+                      <option value="Follow-up">Follow-up</option>
+                      <option value="Discussion">Discussion</option>
+                    </select>
+                  </div>
+                  <div class="ff sm:col-span-2">
+                    <label>Subject / Topic *</label>
+                    <input type="text" formControlName="subject" placeholder="e.g. Discussed bulk packaging discount tier" />
+                  </div>
+                </div>
+
+                <div class="ff">
+                  <label>Detailed Notes *</label>
+                  <textarea rows="2" formControlName="description" placeholder="Summary of discussion points, client feedback, or agreed action items..."></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="ff">
+                    <label>Outcome / Result</label>
+                    <input type="text" formControlName="outcome" placeholder="e.g. Client agreed to trial batch" />
+                  </div>
+                  <div class="ff">
+                    <label>Date &amp; Time</label>
+                    <input type="text" formControlName="activity_date" />
+                  </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                  <button type="submit" class="btn bp text-xs py-1.5 px-4 rounded-xl font-bold">Save Activity</button>
+                </div>
+              </form>
+            }
+
+            <!-- Activity Filter Pills -->
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+              @for (f of ['All', 'Call', 'Meeting', 'Email', 'Task', 'Follow-up']; track f) {
+                <button (click)="selectedActivityFilter.set(f)" class="px-2.5 py-1 rounded-lg font-semibold transition-colors"
+                        [class.bg-[var(--pr)]]="selectedActivityFilter() === f"
+                        [class.text-white]="selectedActivityFilter() === f"
+                        [class.bg-[var(--chip-bg)]]="selectedActivityFilter() !== f"
+                        [class.text-[var(--tx)]]="selectedActivityFilter() !== f">
+                  {{ f }}
+                </button>
+              }
+            </div>
+
+            <!-- Activity Timeline Items -->
+            @if (filteredActivities().length > 0) {
+              <div class="space-y-3">
+                @for (act of filteredActivities(); track act.activity_id) {
+                  <div class="p-3.5 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] flex items-start gap-3 hover:border-[var(--pr)] transition-colors">
+                    
+                    <div class="w-8 h-8 rounded-xl grid place-items-center flex-shrink-0 mt-0.5 text-base"
+                         [ngClass]="{
+                           'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-sky-300': act.activity_type === 'Call',
+                           'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300': act.activity_type === 'Meeting',
+                           'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300': act.activity_type === 'Email',
+                           'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300': act.activity_type === 'Follow-up' || act.activity_type === 'Task',
+                           'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300': act.activity_type === 'Discussion'
+                         }">
+                      <i class="mi text-lg">
+                        {{ act.activity_type === 'Call' ? 'phone' : (act.activity_type === 'Meeting' ? 'groups' : (act.activity_type === 'Email' ? 'email' : (act.activity_type === 'Follow-up' ? 'event' : 'task_alt'))) }}
+                      </i>
+                    </div>
+
+                    <div class="min-w-0 flex-1">
+                      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                        <b class="text-xs text-[var(--hd)]">{{ act.subject }}</b>
+                        <span class="font-mono text-[10px] text-[var(--mu)]">{{ act.activity_date }}</span>
+                      </div>
+                      <p class="text-xs text-[var(--tx)] mt-1 leading-relaxed">{{ act.description }}</p>
+                      
+                      @if (act.outcome) {
+                        <div class="mt-2 text-[11px] p-2 rounded-lg bg-[var(--sf)] border border-[var(--ln)] text-[var(--hd)] font-medium">
+                          <span class="text-[var(--pr)] font-bold">Outcome:</span> {{ act.outcome }}
+                        </div>
+                      }
+
+                      <div class="mt-2 text-[10px] text-[var(--mu)] flex items-center gap-2">
+                        <span>Logged by {{ act.performed_by }}</span>
+                        <span>&bull;</span>
+                        <span class="status-pill text-[9px] px-1.5 py-0.2"
+                              [ngClass]="act.status === 'Completed' ? 'active' : 'pending'">
+                          {{ act.status }}
+                        </span>
+                      </div>
+                    </div>
+
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="text-center py-6 text-xs text-[var(--mu)]">
+                No activities logged in this category. Click "Log Interaction" above.
+              </div>
+            }
+
+          </div>
+        }
+
+        <!-- ===================================================================
+             SECTION 7: ATTACHMENTS & DOCUMENTS
+             =================================================================== -->
+        @if (activeSection() === 'all' || activeSection() === 'documents') {
+          <div class="erp-card-container p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--mu)] flex items-center gap-2">
+                  <i class="mi text-base text-[var(--pr)]">attach_file</i> Attachments &amp; Documents
+                </h3>
+                <span class="text-xs text-[var(--tx)]">Technical specification sheets, RFIs, certificates, and NDA files</span>
+              </div>
+              <button (click)="openUploadDocModal()" class="btn bo text-xs py-1.5 px-3 rounded-xl font-bold flex items-center gap-1">
+                <i class="mi text-sm">upload</i> Add Document
+              </button>
+            </div>
+
+            @if ((l.documents?.length || 0) > 0) {
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                @for (doc of l.documents; track doc.doc_id) {
+                  <div class="p-3.5 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                      <i class="mi text-2xl text-rose-500 flex-shrink-0">picture_as_pdf</i>
+                      <div class="min-w-0">
+                        <b class="text-xs text-[var(--hd)] block truncate" [title]="doc.file_name">{{ doc.file_name }}</b>
+                        <span class="text-[10px] text-[var(--mu)]">{{ doc.file_size }} &bull; {{ doc.uploaded_date }}</span>
+                      </div>
+                    </div>
+                    <button class="ib text-[var(--pr)] hover:bg-[var(--sf)] flex-shrink-0" title="Download">
+                      <i class="mi text-lg">download</i>
+                    </button>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="text-center py-6 text-xs text-[var(--mu)]">
+                No documents attached to this lead. Click "Add Document" to attach files.
+              </div>
+            }
+          </div>
+        }
+
+        <!-- ===================================================================
+             SECTION 8: STATUS & AUDIT HISTORY
+             =================================================================== -->
+        @if (activeSection() === 'all' || activeSection() === 'history') {
+          <div class="erp-card-container p-6 space-y-4">
+            <div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--mu)] flex items-center gap-2">
+                <i class="mi text-base text-[var(--pr)]">history</i> Lead Status &amp; Audit History
+              </h3>
+              <span class="text-xs text-[var(--tx)]">System audit trail recording lifecycle events and status transitions</span>
+            </div>
+
+            <div class="space-y-2.5">
+              @for (h of l.history; track h.history_id) {
+                <div class="p-3 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] flex items-start gap-3">
+                  <div class="w-6 h-6 rounded-full bg-[var(--sf)] border border-[var(--ln)] grid place-items-center flex-shrink-0 mt-0.5 text-xs text-[var(--pr)] font-bold">
+                    <i class="mi text-sm">schedule</i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between gap-2">
+                      <b class="text-xs text-[var(--hd)]">{{ h.event_type }} Event</b>
+                      <span class="font-mono text-[10px] text-[var(--mu)]">{{ h.changed_at }}</span>
+                    </div>
+                    <p class="text-xs text-[var(--tx)] mt-0.5">{{ h.change_reason }}</p>
+                    <span class="text-[10px] text-[var(--mu)] block mt-1">Logged by: {{ h.changed_by }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+      </div>
+
+      <!-- RIGHT 1 COLUMN: Company & Contact, Interested Products, Lead Source -->
+      <div class="space-y-6">
+
+        <!-- ===================================================================
+             SECTION 3: COMPANY & CONTACT
+             =================================================================== -->
+        @if (activeSection() === 'all' || activeSection() === 'company') {
+          <div class="erp-card-container p-6 space-y-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--mu)] flex items-center gap-2">
+              <i class="mi text-base text-[var(--pr)]">business</i> Company &amp; Contact
+            </h3>
+
+            <!-- Company Box -->
+            <div class="p-4 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] space-y-2">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--mu)] block">Company Profile</span>
+              <b class="text-sm text-[var(--hd)] block">{{ l.company_name }}</b>
+              <div class="text-xs text-[var(--tx)] space-y-1 pt-1 border-t border-[var(--ln)]">
+                <div class="flex items-center justify-between">
+                  <span class="text-[var(--mu)]">Industry:</span>
+                  <b>{{ l.industry || 'Agribusiness' }}</b>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-[var(--mu)]">Employees:</span>
+                  <b>{{ l.no_of_employees || '—' }}</b>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-[var(--mu)]">Annual Revenue:</span>
+                  <b class="font-mono">ETB {{ ((l.annual_revenue || 0) / 1000000) | number:'1.0-1' }}M</b>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-[var(--mu)]">Location:</span>
+                  <b>{{ l.city }}, {{ l.country }}</b>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contact Box -->
+            <div class="p-4 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] space-y-2">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--mu)] block">Primary Contact Person</span>
+              <b class="text-sm text-[var(--hd)] block">{{ l.contact_person }}</b>
+              <div class="text-xs text-[var(--tx)] space-y-1.5 pt-1 border-t border-[var(--ln)]">
+                <div class="flex items-center gap-2">
+                  <i class="mi text-sm text-[var(--pr)]">badge</i>
+                  <span>{{ l.job_title || 'Representative' }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <i class="mi text-sm text-emerald-600">email</i>
+                  <a [href]="'mailto:' + l.email" class="hover:underline text-[var(--hd)] font-mono">{{ l.email }}</a>
+                </div>
+                <div class="flex items-center gap-2">
+                  <i class="mi text-sm text-amber-600">phone</i>
+                  <a [href]="'tel:' + l.phone" class="hover:underline text-[var(--hd)] font-mono">{{ l.phone }}</a>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        }
+
+        <!-- ===================================================================
+             SECTION 4: INTERESTED PRODUCTS / SERVICES
+             =================================================================== -->
+        @if (activeSection() === 'all' || activeSection() === 'product') {
+          <div class="erp-card-container p-6 space-y-3.5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--mu)] flex items-center gap-2">
+              <i class="mi text-base text-[var(--pr)]">inventory_2</i> Interested Products / Services
+            </h3>
+
+            <div class="p-4 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] space-y-2">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--mu)] block">Main Interest</span>
+              <b class="text-sm text-[var(--hd)] block">{{ l.interested_in }}</b>
+              @if (l.product_code) {
+                <span class="font-mono text-xs text-[var(--pr)] bg-[var(--sf)] px-2 py-0.5 rounded border border-[var(--ln)] inline-block">
+                  SKU: {{ l.product_code }}
+                </span>
+              }
+              <p class="text-xs text-[var(--tx)] pt-2 border-t border-[var(--ln)] leading-relaxed">
+                {{ l.interest_notes || 'No specific technical specifications entered.' }}
+              </p>
+            </div>
+          </div>
+        }
+
+        <!-- ===================================================================
+             SECTION 2: LEAD SOURCE
+             =================================================================== -->
+        @if (activeSection() === 'all' || activeSection() === 'source') {
+          <div class="erp-card-container p-6 space-y-3.5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--mu)] flex items-center gap-2">
+              <i class="mi text-base text-[var(--pr)]">share</i> Lead Source &amp; Attribution
+            </h3>
+
+            <div class="p-4 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] space-y-2.5 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-[var(--mu)] font-medium">Channel:</span>
+                <span class="cat-pill font-bold">{{ l.source_channel }}</span>
+              </div>
+              @if (l.source_detail) {
+                <div class="flex items-center justify-between">
+                  <span class="text-[var(--mu)] font-medium">Detail:</span>
+                  <b class="text-right truncate max-w-[160px]">{{ l.source_detail }}</b>
+                </div>
+              }
+              @if (l.marketing_activity_name) {
+                <div class="pt-2 border-t border-[var(--ln)]">
+                  <span class="text-[10px] text-[var(--mu)] font-bold uppercase block mb-1">Marketing Activity Origin</span>
+                  <span class="text-xs font-semibold text-[var(--pr)] block">{{ l.marketing_activity_name }}</span>
+                </div>
+              }
+              <div class="pt-2 border-t border-[var(--ln)] flex items-center justify-between">
+                <span class="text-[var(--mu)] font-medium">Consent Status:</span>
+                <span class="status-pill text-[10px] px-2 py-0.5"
+                      [ngClass]="l.consent_status === 'Given' ? 'active' : 'inactive'">
+                  {{ l.consent_status }}
+                </span>
+              </div>
+            </div>
+
+          </div>
+        }
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- BANT Modal -->
+  @if (isBantModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+      <div class="bg-[var(--sf)] border border-[var(--ln)] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6">
+        <div class="flex items-center justify-between pb-4 border-b border-[var(--ln)] mb-5">
+          <h2 class="text-lg font-bold text-[var(--hd)]">BANT Assessment: {{ l.lead_code }}</h2>
+          <button (click)="isBantModalOpen.set(false)" class="ib text-[var(--mu)]"><i class="mi text-xl">close</i></button>
+        </div>
+
+        <form [formGroup]="bantForm" (ngSubmit)="submitBant()" class="space-y-4">
+          
+          <div class="p-3.5 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] space-y-2">
+            <div class="flex items-center justify-between">
+              <b class="text-xs text-[var(--hd)]">1. Budget</b>
+              <select formControlName="budget_criterion" class="text-xs bg-[var(--sf)] border border-[var(--ln)] rounded-lg p-1">
+                <option value="Confirmed">Confirmed</option>
+                <option value="Partial">Partial</option>
+                <option value="Not confirmed">Not confirmed</option>
+                <option value="Not applicable">Not applicable</option>
+              </select>
+            </div>
+            <input type="text" formControlName="budget_evidence" placeholder="Evidence..." class="w-full text-xs p-2 rounded-lg bg-[var(--sf)] border border-[var(--ln)] text-[var(--hd)] outline-none" />
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] space-y-2">
+            <div class="flex items-center justify-between">
+              <b class="text-xs text-[var(--hd)]">2. Authority</b>
+              <select formControlName="authority_criterion" class="text-xs bg-[var(--sf)] border border-[var(--ln)] rounded-lg p-1">
+                <option value="Confirmed">Confirmed</option>
+                <option value="Partial">Partial</option>
+                <option value="Not confirmed">Not confirmed</option>
+                <option value="Not applicable">Not applicable</option>
+              </select>
+            </div>
+            <input type="text" formControlName="authority_evidence" placeholder="Evidence..." class="w-full text-xs p-2 rounded-lg bg-[var(--sf)] border border-[var(--ln)] text-[var(--hd)] outline-none" />
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] space-y-2">
+            <div class="flex items-center justify-between">
+              <b class="text-xs text-[var(--hd)]">3. Need</b>
+              <select formControlName="need_criterion" class="text-xs bg-[var(--sf)] border border-[var(--ln)] rounded-lg p-1">
+                <option value="Confirmed">Confirmed</option>
+                <option value="Partial">Partial</option>
+                <option value="Not confirmed">Not confirmed</option>
+                <option value="Not applicable">Not applicable</option>
+              </select>
+            </div>
+            <input type="text" formControlName="need_evidence" placeholder="Evidence..." class="w-full text-xs p-2 rounded-lg bg-[var(--sf)] border border-[var(--ln)] text-[var(--hd)] outline-none" />
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] space-y-2">
+            <div class="flex items-center justify-between">
+              <b class="text-xs text-[var(--hd)]">4. Timeline</b>
+              <select formControlName="timeline_criterion" class="text-xs bg-[var(--sf)] border border-[var(--ln)] rounded-lg p-1">
+                <option value="Confirmed">Confirmed</option>
+                <option value="Partial">Partial</option>
+                <option value="Not confirmed">Not confirmed</option>
+                <option value="Not applicable">Not applicable</option>
+              </select>
+            </div>
+            <input type="text" formControlName="timeline_evidence" placeholder="Evidence..." class="w-full text-xs p-2 rounded-lg bg-[var(--sf)] border border-[var(--ln)] text-[var(--hd)] outline-none" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="ff">
+              <label>Outcome</label>
+              <select formControlName="qualification_outcome">
+                <option value="Qualified">Qualified</option>
+                <option value="Nurturing">Nurturing</option>
+                <option value="Unqualified">Unqualified</option>
+              </select>
+            </div>
+            <div class="ff">
+              <label>Assessed By</label>
+              <input type="text" formControlName="assessed_by" />
+            </div>
+          </div>
+
+          <div class="ff">
+            <label>Evidence Summary</label>
+            <textarea rows="2" formControlName="evidence_summary"></textarea>
+          </div>
+
+          <div class="flex justify-end gap-2.5 pt-3 border-t border-[var(--ln)]">
+            <button type="button" (click)="isBantModalOpen.set(false)" class="btn bo text-xs py-2 px-4 rounded-xl">Cancel</button>
+            <button type="submit" class="btn bp text-xs py-2 px-4 rounded-xl font-bold">Save Assessment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Convert Modal -->
+  @if (isConvertModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+      <div class="bg-[var(--sf)] border border-[var(--ln)] rounded-2xl w-full max-w-lg shadow-2xl p-6">
+        <div class="flex items-center justify-between pb-3 border-b border-[var(--ln)] mb-4">
+          <h2 class="text-lg font-bold text-[var(--hd)]">Convert Lead: {{ l.lead_code }}</h2>
+          <button (click)="isConvertModalOpen.set(false)" class="ib text-[var(--mu)]"><i class="mi text-xl">close</i></button>
+        </div>
+
+        <form [formGroup]="convertForm" (ngSubmit)="submitConvert()" class="space-y-3.5">
+          <div class="ff">
+            <label>Opportunity Name</label>
+            <input type="text" formControlName="deal_name" />
+          </div>
+          <div class="ff">
+            <label>Expected Deal Value (ETB)</label>
+            <input type="number" formControlName="expected_value" />
+          </div>
+          <div class="flex justify-end gap-2.5 pt-4 border-t border-[var(--ln)]">
+            <button type="button" (click)="isConvertModalOpen.set(false)" class="btn bo text-xs py-2 px-4 rounded-xl">Cancel</button>
+            <button type="submit" class="btn bp text-xs py-2 px-4 rounded-xl font-bold bg-purple-600 hover:bg-purple-700">Confirm Conversion</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Follow-up Modal -->
+  @if (isFollowUpModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+      <div class="bg-[var(--sf)] border border-[var(--ln)] rounded-2xl w-full max-w-md shadow-2xl p-6">
+        <div class="flex items-center justify-between pb-3 border-b border-[var(--ln)] mb-4">
+          <h2 class="text-base font-bold text-[var(--hd)]">Schedule Follow-up</h2>
+          <button (click)="isFollowUpModalOpen.set(false)" class="ib text-[var(--mu)]"><i class="mi text-xl">close</i></button>
+        </div>
+        <form [formGroup]="followUpForm" (ngSubmit)="submitFollowUp()" class="space-y-4">
+          <div class="ff">
+            <label>Follow-up Date</label>
+            <input type="date" formControlName="follow_up_date" />
+          </div>
+          <div class="ff">
+            <label>Notes</label>
+            <textarea rows="3" formControlName="note"></textarea>
+          </div>
+          <div class="flex justify-end gap-2.5 pt-3 border-t border-[var(--ln)]">
+            <button type="button" (click)="isFollowUpModalOpen.set(false)" class="btn bo text-xs py-2 px-4 rounded-xl">Cancel</button>
+            <button type="submit" class="btn bp text-xs py-2 px-4 rounded-xl font-bold">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Document Upload Modal -->
+  @if (isUploadDocModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+      <div class="bg-[var(--sf)] border border-[var(--ln)] rounded-2xl w-full max-w-md shadow-2xl p-6">
+        <div class="flex items-center justify-between pb-3 border-b border-[var(--ln)] mb-4">
+          <h2 class="text-base font-bold text-[var(--hd)]">Attach Document</h2>
+          <button (click)="isUploadDocModalOpen.set(false)" class="ib text-[var(--mu)]"><i class="mi text-xl">close</i></button>
+        </div>
+        <form [formGroup]="docForm" (ngSubmit)="submitDoc()" class="space-y-4">
+          <div class="ff">
+            <label>Document / File Name</label>
+            <input type="text" formControlName="file_name" placeholder="e.g. Technical_Audit_Specs.pdf" />
+          </div>
+          <div class="ff">
+            <label>File Type</label>
+            <select formControlName="file_type">
+              <option value="PDF">PDF</option>
+              <option value="DOCX">DOCX</option>
+              <option value="XLSX">XLSX</option>
+            </select>
+          </div>
+          <div class="flex justify-end gap-2.5 pt-3 border-t border-[var(--ln)]">
+            <button type="button" (click)="isUploadDocModalOpen.set(false)" class="btn bo text-xs py-2 px-4 rounded-xl">Cancel</button>
+            <button type="submit" class="btn bp text-xs py-2 px-4 rounded-xl font-bold">Attach</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+} @else {
+  <div class="p-12 text-center">
+    <b class="text-base text-[var(--hd)] block mb-2">Lead Not Found</b>
+    <p class="text-xs text-[var(--tx)] mb-4">The requested lead could not be located in the register.</p>
+    <a routerLink="/leads" class="btn bp text-xs py-2 px-4 rounded-xl font-bold">Back to Leads</a>
+  </div>
+}
+

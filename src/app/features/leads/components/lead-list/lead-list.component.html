@@ -1,0 +1,819 @@
+<div class="space-y-6" (click)="closeActiveMenu()">
+  
+  <!-- Page Title & Header matching Production ERP Reference -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <span class="text-xs font-bold tracking-wider text-[var(--mu)] uppercase block mb-1">CRM</span>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-[var(--hd)] tracking-tight">Lead Management</h1>
+      <h2 class="text-base font-semibold text-[var(--hd)] mt-0.5">Lead Register</h2>
+      <p class="text-xs text-[var(--tx)] mt-1 max-w-2xl">
+        Manage and track prospect inquiries, source attribution, team assignment, BANT qualification, and CRM opportunity conversion.
+      </p>
+    </div>
+    
+    <div class="flex items-center gap-2.5">
+      <button (click)="openCreateDrawer()" class="btn bp text-xs py-2 px-3.5 rounded-xl font-bold flex items-center gap-1.5 shadow-sm">
+        <i class="mi text-base">add</i> New Lead
+      </button>
+    </div>
+  </div>
+
+  <!-- 4 Top Executive KPI Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    
+    <!-- Total Leads -->
+    <div class="kpi-card">
+      <div class="min-w-0">
+        <div class="kpi-card-val">{{ totalLeads() }}</div>
+        <div class="kpi-card-lbl">Total Leads</div>
+        <div class="text-[11px] text-[var(--mu)] font-semibold mt-1 truncate">
+          {{ activeCount() }} Active in Pipeline
+        </div>
+      </div>
+      <div class="kpi-icon-badge bg-blue-50 dark:bg-[#162a4a] text-blue-600 dark:text-sky-400">
+        <i class="mi text-2xl">folder</i>
+      </div>
+    </div>
+
+    <!-- Qualified (Ready to Convert) -->
+    <div class="kpi-card">
+      <div class="min-w-0">
+        <div class="kpi-card-val text-[var(--ok)]">{{ qualifiedCount() }}</div>
+        <div class="kpi-card-lbl">Qualified (Ready to Convert)</div>
+        <div class="text-[11px] text-[var(--ok)] font-semibold mt-1 truncate">
+          BANT Assessment Finalized
+        </div>
+      </div>
+      <div class="kpi-icon-badge bg-emerald-50 dark:bg-[#14382a] text-emerald-600 dark:text-emerald-400">
+        <i class="mi text-2xl">verified</i>
+      </div>
+    </div>
+
+    <!-- Active In Pipeline (Contacted & Nurturing) -->
+    <div class="kpi-card">
+      <div class="min-w-0">
+        <div class="kpi-card-val">{{ activeCount() }}</div>
+        <div class="kpi-card-lbl">In Qualification</div>
+        <div class="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold mt-1 truncate">
+          Contacted &amp; Nurturing
+        </div>
+      </div>
+      <div class="kpi-icon-badge bg-indigo-50 dark:bg-[#1c2242] text-indigo-600 dark:text-indigo-400">
+        <i class="mi text-2xl">hourglass_top</i>
+      </div>
+    </div>
+
+    <!-- Overdue Follow-ups -->
+    <div class="kpi-card">
+      <div class="min-w-0">
+        <div class="kpi-card-val" [class.text-amber-500]="overdueCount() > 0">{{ overdueCount() }}</div>
+        <div class="kpi-card-lbl">Overdue Follow-ups</div>
+        <div class="text-[11px] text-amber-600 dark:text-amber-400 font-semibold mt-1 truncate">
+          {{ overdueCount() > 0 ? 'Requires immediate contact' : 'All schedules on track' }}
+        </div>
+      </div>
+      <div class="kpi-icon-badge bg-amber-50 dark:bg-[#3b2f12] text-amber-600 dark:text-amber-400">
+        <i class="mi text-2xl">schedule</i>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Main Enclosing ERP Card Container -->
+  <div class="erp-card-container">
+    
+    <!-- Toolbar: Search, Filters, Inactive Toggle, New Button -->
+    <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3.5 mb-5">
+      
+      <div class="flex flex-wrap items-center gap-3 flex-1">
+        <!-- Search Field -->
+        <div class="erp-search-field flex-1 min-w-[240px]">
+          <label>Search</label>
+          <input 
+            #searchInput
+            [value]="searchQuery()" 
+            (input)="onSearch($event)" 
+            (keydown.escape)="clearSearch()"
+            placeholder="Lead code, prospect, company, product..." />
+          @if (searchQuery()) {
+            <button type="button" (click)="clearSearch()" class="erp-search-clear mr-1" title="Clear search">
+              <i class="mi text-sm">close</i>
+            </button>
+          }
+          <button type="button" (click)="searchInput.focus()" class="erp-search-btn pr-3" title="Search">
+            <i class="mi text-lg">search</i>
+          </button>
+        </div>
+
+        <!-- Status Filter -->
+        <div class="ff min-w-[140px]">
+          <label>Status</label>
+          <select [value]="selectedStatus()" (change)="onStatusChange($event)">
+            <option value="All">All Statuses</option>
+            <option value="New">New</option>
+            <option value="Contacted">Contacted</option>
+            <option value="Nurturing">Nurturing</option>
+            <option value="Qualified">Qualified</option>
+            <option value="Converted">Converted</option>
+            <option value="Unqualified">Unqualified</option>
+          </select>
+        </div>
+
+        <!-- Source Filter -->
+        <div class="ff min-w-[140px]">
+          <label>Source</label>
+          <select [value]="selectedSource()" (change)="onSourceChange($event)">
+            <option value="All">All Sources</option>
+            <option value="Workshop">Workshop</option>
+            <option value="Campaign">Campaign</option>
+            <option value="Event">Event</option>
+            <option value="LinkedIn">LinkedIn</option>
+            <option value="Referral">Referral</option>
+            <option value="Direct inquiry">Direct inquiry</option>
+            <option value="Website">Website</option>
+          </select>
+        </div>
+
+        <!-- Include Inactive Switch -->
+        <label class="toggle-switch">
+          <div class="toggle-track" [class.active]="includeInactive()" (click)="toggleInactive()">
+            <div class="toggle-thumb"></div>
+          </div>
+          <span>Include Unqualified</span>
+        </label>
+      </div>
+
+      <div class="flex items-center gap-2.5 flex-shrink-0">
+        <button (click)="openCreateDrawer()" class="btn bp text-xs py-2 px-3.5 rounded-xl font-bold flex items-center gap-1.5">
+          <i class="mi text-base">add</i> New Lead
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Nested ERP Table -->
+    @if (paginatedLeads().length > 0) {
+      <div class="erp-table-nested">
+        <table class="crm-tbl">
+          <thead>
+            <tr>
+              <th>LEAD / CONTACT</th>
+              <th>COMPANY</th>
+              <th>INTERESTED IN</th>
+              <th>SOURCE</th>
+              <th>ASSIGNED TO</th>
+              <th>FOLLOW-UP DATE</th>
+              <th>STATUS</th>
+              <th class="text-right">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (lead of paginatedLeads(); track lead.lead_id) {
+              <tr class="hover:bg-[var(--chip-bg)] transition-colors">
+                
+                <!-- 1. Lead / Contact -->
+                <td>
+                  <span class="text-[var(--hd)] hover:text-[var(--pr)] cursor-pointer text-sm font-semibold whitespace-nowrap" (click)="viewLead(lead)">
+                    {{ lead.contact_person }}
+                  </span>
+                </td>
+
+                <!-- 2. Company -->
+                <td class="text-xs text-[var(--hd)] font-medium whitespace-nowrap">
+                  {{ lead.company_name }}
+                </td>
+
+                <!-- 3. Interested In -->
+                <td class="text-xs text-[var(--hd)] truncate max-w-xs" [title]="lead.interested_in">
+                  {{ lead.interested_in }}
+                </td>
+
+                <!-- 4. Source -->
+                <td>
+                  <span class="cat-pill text-xs font-semibold px-2.5 py-0.5 whitespace-nowrap">
+                    {{ lead.source_channel }}
+                  </span>
+                </td>
+
+                <!-- 5. Assigned To -->
+                <td class="text-xs text-[var(--hd)] font-medium whitespace-nowrap">
+                  {{ lead.assigned_to_name || 'Unassigned' }}
+                </td>
+
+                <!-- 6. Follow-up Date -->
+                <td class="font-mono text-xs text-[var(--hd)] whitespace-nowrap">
+                  {{ lead.follow_up_date || '—' }}
+                </td>
+
+                <!-- 7. Status Pill -->
+                <td>
+                  @if (lead.status === 'Qualified') {
+                    <span class="status-pill active" title="BANT Qualified - Ready for Opportunity conversion">
+                      <i class="mi text-sm">verified</i> QUALIFIED
+                    </span>
+                  } @else if (lead.status === 'Contacted') {
+                    <span class="status-pill pending" title="Initial engagement established">
+                      <i class="mi text-sm">chat</i> CONTACTED
+                    </span>
+                  } @else if (lead.status === 'Nurturing') {
+                    <span class="status-pill text-amber-700 bg-amber-50 dark:text-amber-300 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800" title="Prospect not yet ready - Scheduled follow-up">
+                      <i class="mi text-sm">hourglass_empty</i> NURTURING
+                    </span>
+                  } @else if (lead.status === 'New') {
+                    <span class="status-pill text-blue-700 bg-blue-50 dark:text-blue-300 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800" title="Registered - Not yet contacted">
+                      <i class="mi text-sm">fiber_new</i> NEW
+                    </span>
+                  } @else if (lead.status === 'Converted') {
+                    <span class="status-pill text-purple-700 bg-purple-50 dark:text-purple-300 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800" title="Converted to Opportunity">
+                      <i class="mi text-sm">task_alt</i> CONVERTED
+                    </span>
+                  } @else {
+                    <span class="status-pill inactive" title="Disqualified lead">
+                      <i class="mi text-sm">block</i> UNQUALIFIED
+                    </span>
+                  }
+                </td>
+
+                <!-- 8. Context-Sensitive Actions via 3-dots Menu -->
+                <td class="text-right relative whitespace-nowrap" (click)="$event.stopPropagation()">
+                  <button 
+                    (click)="toggleMenu(lead.lead_id, $event)" 
+                    class="ib text-[var(--tx)] hover:bg-[var(--chip-bg)]" 
+                    title="Row Actions"
+                    aria-label="Actions">
+                    <i class="mi text-xl text-[var(--mu)] hover:text-[var(--hd)]">more_vert</i>
+                  </button>
+
+                  <!-- Smart Upward Context-Sensitive Popover -->
+                  @if (activeMenuId() === lead.lead_id) {
+                    <div class="action-popover">
+                      
+                      <!-- 1. View Details (Always available) -->
+                      <button (click)="viewLead(lead)" class="action-item font-semibold">
+                        <i class="mi">visibility</i>
+                        <span>View Details (360°)</span>
+                      </button>
+
+                      <!-- 2. Edit Lead (Available for non-converted) -->
+                      @if (lead.status !== 'Converted') {
+                        <button (click)="openEditDrawer(lead)" class="action-item">
+                          <i class="mi">edit</i>
+                          <span>Edit Information</span>
+                        </button>
+                      }
+
+                      <div class="action-divider"></div>
+
+                      <!-- 3. Assign Owner (Available for active leads) -->
+                      @if (lead.status !== 'Converted' && lead.status !== 'Unqualified') {
+                        <button (click)="openAssignModal(lead)" class="action-item">
+                          <i class="mi">person_add</i>
+                          <span>Assign / Reassign</span>
+                        </button>
+                      }
+
+                      <!-- 4. Follow Up (Available for active leads) -->
+                      @if (lead.status !== 'Converted' && lead.status !== 'Unqualified') {
+                        <button (click)="openFollowUpModal(lead)" class="action-item">
+                          <i class="mi">event</i>
+                          <span>Schedule Follow-up</span>
+                        </button>
+                      }
+
+                      <!-- 5. Qualify (BANT) (Available for Contacted, Nurturing, or Qualified) -->
+                      @if (lead.status === 'Contacted' || lead.status === 'Nurturing' || lead.status === 'Qualified') {
+                        <button (click)="openQualifyModal(lead)" class="action-item text-emerald-600 dark:text-emerald-400 font-semibold">
+                          <i class="mi text-emerald-600">verified</i>
+                          <span>{{ lead.status === 'Qualified' ? 'Re-evaluate BANT' : 'BANT Qualification' }}</span>
+                        </button>
+                      }
+
+                      <!-- 6. Convert (Available ONLY for Qualified) -->
+                      @if (lead.status === 'Qualified') {
+                        <button (click)="openConvertModal(lead)" class="action-item text-purple-600 dark:text-purple-400 font-bold">
+                          <i class="mi text-purple-600">trending_up</i>
+                          <span>Convert to Opportunity</span>
+                        </button>
+                      }
+
+                      <!-- 7. Disqualify (Available for active leads) -->
+                      @if (lead.status !== 'Converted' && lead.status !== 'Unqualified') {
+                        <button (click)="openDisqualifyModal(lead)" class="action-item text-amber-600 dark:text-amber-400">
+                          <i class="mi text-amber-600">cancel</i>
+                          <span>Disqualify Lead</span>
+                        </button>
+                      }
+
+                      <!-- 8. Reopen (Available ONLY for Unqualified) -->
+                      @if (lead.status === 'Unqualified') {
+                        <button (click)="openReopenModal(lead)" class="action-item text-blue-600 dark:text-sky-400 font-semibold">
+                          <i class="mi text-blue-600">replay</i>
+                          <span>Reopen Lead</span>
+                        </button>
+                      }
+
+                    </div>
+                  }
+                </td>
+
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Component -->
+      <app-table-pagination
+        [totalItems]="filteredLeads().length"
+        [pageSize]="pageSize()"
+        [currentPage]="currentPage()"
+        (pageChange)="onPageChange($event)"
+        (pageSizeChange)="onPageSizeChange($event)">
+      </app-table-pagination>
+
+    } @else {
+      <!-- Empty State -->
+      <div class="empty-state-box">
+        <div class="empty-state-icon">
+          <i class="mi text-3xl">filter_alt_off</i>
+        </div>
+        <h3 class="text-base font-bold text-[var(--hd)] mb-1">No Leads Found</h3>
+        <p class="text-xs text-[var(--tx)] max-w-sm mb-4">
+          No records match your active search filter or qualification criteria. Try adjusting your search query or toggling "Include Unqualified".
+        </p>
+        <button (click)="clearSearch()" class="btn bo text-xs py-2 px-3.5 rounded-xl font-medium">
+          Reset Filter Criteria
+        </button>
+      </div>
+    }
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================================
+     MODAL 1: BANT QUALIFICATION MODAL
+     ========================================================================= -->
+@if (isQualifyModalOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+    <div class="bg-[var(--sf)] border border-[var(--ln)] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6">
+      
+      <div class="flex items-center justify-between pb-4 border-b border-[var(--ln)] mb-5">
+        <div>
+          <span class="text-[10px] font-bold text-[var(--pr)] uppercase tracking-wider block">Lead Qualification</span>
+          <h2 class="text-lg font-bold text-[var(--hd)]">BANT Assessment: {{ selectedLeadForAction()?.lead_code }}</h2>
+          <p class="text-xs text-[var(--mu)]">{{ selectedLeadForAction()?.company_name }} &bull; {{ selectedLeadForAction()?.interested_in }}</p>
+        </div>
+        <button (click)="isQualifyModalOpen.set(false)" class="ib text-[var(--mu)] hover:text-[var(--hd)]">
+          <i class="mi text-xl">close</i>
+        </button>
+      </div>
+
+      <form [formGroup]="qualifyForm" (ngSubmit)="submitQualify()" class="space-y-4">
+        
+        <!-- Budget -->
+        <div class="p-3.5 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] space-y-2">
+          <div class="flex items-center justify-between">
+            <b class="text-xs text-[var(--hd)] flex items-center gap-1.5">
+              <i class="mi text-base text-[var(--pr)]">account_balance_wallet</i> 1. Budget (Does client have approved funds?)
+            </b>
+            <select formControlName="budget_criterion" class="text-xs bg-[var(--sf)] border border-[var(--ln)] rounded-lg p-1 text-[var(--hd)]">
+              <option value="Confirmed">Confirmed</option>
+              <option value="Partial">Partial</option>
+              <option value="Not confirmed">Not confirmed</option>
+              <option value="Not applicable">Not applicable</option>
+            </select>
+          </div>
+          <input type="text" formControlName="budget_evidence" placeholder="Evidence: Amount, allocated range, funding source..." class="w-full text-xs p-2 rounded-lg bg-[var(--sf)] border border-[var(--ln)] text-[var(--hd)] outline-none" />
+        </div>
+
+        <!-- Authority -->
+        <div class="p-3.5 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] space-y-2">
+          <div class="flex items-center justify-between">
+            <b class="text-xs text-[var(--hd)] flex items-center gap-1.5">
+              <i class="mi text-base text-purple-600">badge</i> 2. Authority (Who makes the final purchasing decision?)
+            </b>
+            <select formControlName="authority_criterion" class="text-xs bg-[var(--sf)] border border-[var(--ln)] rounded-lg p-1 text-[var(--hd)]">
+              <option value="Confirmed">Confirmed</option>
+              <option value="Partial">Partial</option>
+              <option value="Not confirmed">Not confirmed</option>
+              <option value="Not applicable">Not applicable</option>
+            </select>
+          </div>
+          <input type="text" formControlName="authority_evidence" placeholder="Evidence: Decision maker name, title, committee approval path..." class="w-full text-xs p-2 rounded-lg bg-[var(--sf)] border border-[var(--ln)] text-[var(--hd)] outline-none" />
+        </div>
+
+        <!-- Need -->
+        <div class="p-3.5 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] space-y-2">
+          <div class="flex items-center justify-between">
+            <b class="text-xs text-[var(--hd)] flex items-center gap-1.5">
+              <i class="mi text-base text-emerald-600">report_problem</i> 3. Need (Is there a real operational problem Raras solves?)
+            </b>
+            <select formControlName="need_criterion" class="text-xs bg-[var(--sf)] border border-[var(--ln)] rounded-lg p-1 text-[var(--hd)]">
+              <option value="Confirmed">Confirmed</option>
+              <option value="Partial">Partial</option>
+              <option value="Not confirmed">Not confirmed</option>
+              <option value="Not applicable">Not applicable</option>
+            </select>
+          </div>
+          <input type="text" formControlName="need_evidence" placeholder="Evidence: Pain point, packaging/grain defect impact, required technical spec..." class="w-full text-xs p-2 rounded-lg bg-[var(--sf)] border border-[var(--ln)] text-[var(--hd)] outline-none" />
+        </div>
+
+        <!-- Timeline -->
+        <div class="p-3.5 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] space-y-2">
+          <div class="flex items-center justify-between">
+            <b class="text-xs text-[var(--hd)] flex items-center gap-1.5">
+              <i class="mi text-base text-amber-600">event_available</i> 4. Timeline (What is the expected purchase/delivery deadline?)
+            </b>
+            <select formControlName="timeline_criterion" class="text-xs bg-[var(--sf)] border border-[var(--ln)] rounded-lg p-1 text-[var(--hd)]">
+              <option value="Confirmed">Confirmed</option>
+              <option value="Partial">Partial</option>
+              <option value="Not confirmed">Not confirmed</option>
+              <option value="Not applicable">Not applicable</option>
+            </select>
+          </div>
+          <input type="text" formControlName="timeline_evidence" placeholder="Evidence: Expected contract award date, factory delivery schedule..." class="w-full text-xs p-2 rounded-lg bg-[var(--sf)] border border-[var(--ln)] text-[var(--hd)] outline-none" />
+        </div>
+
+        <!-- Assessment Outcome & Summary -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          <div class="ff">
+            <label>Qualification Outcome</label>
+            <select formControlName="qualification_outcome">
+              <option value="Qualified">Qualified (Ready for Opportunity)</option>
+              <option value="Nurturing">Nurturing (Not yet ready - Keep warm)</option>
+              <option value="Unqualified">Unqualified (Does not fit criteria)</option>
+            </select>
+          </div>
+          <div class="ff">
+            <label>Assessed By</label>
+            <input type="text" formControlName="assessed_by" />
+          </div>
+        </div>
+
+        <div class="ff">
+          <label>Evidence &amp; Justification Summary</label>
+          <textarea rows="2" formControlName="evidence_summary" placeholder="Summary statement justifying the qualification decision..."></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2.5 pt-4 border-t border-[var(--ln)]">
+          <button type="button" (click)="isQualifyModalOpen.set(false)" class="btn bo text-xs py-2 px-4 rounded-xl">Cancel</button>
+          <button type="submit" class="btn bp text-xs py-2 px-4 rounded-xl font-bold">Save Assessment &amp; Update Status</button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+}
+
+
+<!-- =========================================================================
+     MODAL 2: CONVERT TO OPPORTUNITY MODAL
+     ========================================================================= -->
+@if (isConvertModalOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+    <div class="bg-[var(--sf)] border border-[var(--ln)] rounded-2xl w-full max-w-lg shadow-2xl p-6">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-[var(--ln)] mb-4">
+        <div>
+          <span class="text-[10px] font-bold text-purple-600 uppercase tracking-wider block">CRM Hand-Over</span>
+          <h2 class="text-lg font-bold text-[var(--hd)]">Convert Lead: {{ selectedLeadForAction()?.lead_code }}</h2>
+        </div>
+        <button (click)="isConvertModalOpen.set(false)" class="ib text-[var(--mu)] hover:text-[var(--hd)]">
+          <i class="mi text-xl">close</i>
+        </button>
+      </div>
+
+      <p class="text-xs text-[var(--tx)] mb-4 leading-relaxed">
+        Converting this qualified lead will lock the lead and automatically create linked records in Core CRM:
+      </p>
+
+      <div class="space-y-2 mb-5">
+        <div class="p-3 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 flex items-center gap-3">
+          <i class="mi text-purple-600 text-xl">business</i>
+          <div class="text-xs">
+            <b class="text-[var(--hd)] block">New Customer</b>
+            <span class="text-[var(--mu)]">{{ selectedLeadForAction()?.company_name }}</span>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 flex items-center gap-3">
+          <i class="mi text-blue-600 text-xl">person</i>
+          <div class="text-xs">
+            <b class="text-[var(--hd)] block">Primary Contact</b>
+            <span class="text-[var(--mu)]">{{ selectedLeadForAction()?.contact_person }} ({{ selectedLeadForAction()?.job_title }})</span>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center gap-3">
+          <i class="mi text-emerald-600 text-xl">trending_up</i>
+          <div class="text-xs">
+            <b class="text-[var(--hd)] block">New Sales Opportunity</b>
+            <span class="text-[var(--mu)]">Transfers BANT assessment, interest, and open tasks.</span>
+          </div>
+        </div>
+      </div>
+
+      <form [formGroup]="convertForm" (ngSubmit)="submitConvert()" class="space-y-3.5">
+        <div class="ff">
+          <label>Opportunity Name</label>
+          <input type="text" formControlName="deal_name" />
+        </div>
+
+        <div class="ff">
+          <label>Expected Deal Value (ETB)</label>
+          <input type="number" formControlName="expected_value" />
+        </div>
+
+        <div class="flex justify-end gap-2.5 pt-4 border-t border-[var(--ln)]">
+          <button type="button" (click)="isConvertModalOpen.set(false)" class="btn bo text-xs py-2 px-4 rounded-xl">Cancel</button>
+          <button type="submit" class="btn bp text-xs py-2 px-4 rounded-xl font-bold bg-purple-600 hover:bg-purple-700">Confirm Conversion</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+}
+
+
+<!-- =========================================================================
+     MODAL 3: ASSIGN OWNER MODAL
+     ========================================================================= -->
+@if (isAssignModalOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+    <div class="bg-[var(--sf)] border border-[var(--ln)] rounded-2xl w-full max-w-md shadow-2xl p-6">
+      <div class="flex items-center justify-between pb-3 border-b border-[var(--ln)] mb-4">
+        <h2 class="text-base font-bold text-[var(--hd)]">Assign Lead: {{ selectedLeadForAction()?.lead_code }}</h2>
+        <button (click)="isAssignModalOpen.set(false)" class="ib text-[var(--mu)]"><i class="mi text-xl">close</i></button>
+      </div>
+
+      <form [formGroup]="assignForm" (ngSubmit)="submitAssign()" class="space-y-4">
+        <div class="ff">
+          <label>Select Sales Representative / Owner</label>
+          <select formControlName="assigned_to_name">
+            @for (m of teamMembers; track m) {
+              <option [value]="m">{{ m }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="ff">
+          <label>Assignment Reason</label>
+          <input type="text" formControlName="reason" placeholder="e.g. Territory routing, industry expertise..." />
+        </div>
+
+        <div class="flex justify-end gap-2.5 pt-3 border-t border-[var(--ln)]">
+          <button type="button" (click)="isAssignModalOpen.set(false)" class="btn bo text-xs py-2 px-4 rounded-xl">Cancel</button>
+          <button type="submit" class="btn bp text-xs py-2 px-4 rounded-xl font-bold">Confirm Assignment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+
+<!-- =========================================================================
+     MODAL 4: SCHEDULE FOLLOW-UP MODAL
+     ========================================================================= -->
+@if (isFollowUpModalOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+    <div class="bg-[var(--sf)] border border-[var(--ln)] rounded-2xl w-full max-w-md shadow-2xl p-6">
+      <div class="flex items-center justify-between pb-3 border-b border-[var(--ln)] mb-4">
+        <h2 class="text-base font-bold text-[var(--hd)]">Schedule Follow-up: {{ selectedLeadForAction()?.lead_code }}</h2>
+        <button (click)="isFollowUpModalOpen.set(false)" class="ib text-[var(--mu)]"><i class="mi text-xl">close</i></button>
+      </div>
+
+      <form [formGroup]="followUpForm" (ngSubmit)="submitFollowUp()" class="space-y-4">
+        <div class="ff">
+          <label>Follow-up Date</label>
+          <input type="date" formControlName="follow_up_date" />
+        </div>
+
+        <div class="ff">
+          <label>Follow-up Objective &amp; Notes</label>
+          <textarea rows="3" formControlName="note" placeholder="Call client regarding pricing proposal or contract draft..."></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2.5 pt-3 border-t border-[var(--ln)]">
+          <button type="button" (click)="isFollowUpModalOpen.set(false)" class="btn bo text-xs py-2 px-4 rounded-xl">Cancel</button>
+          <button type="submit" class="btn bp text-xs py-2 px-4 rounded-xl font-bold">Save Schedule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+
+<!-- =========================================================================
+     MODAL 5: DISQUALIFY LEAD MODAL
+     ========================================================================= -->
+@if (isDisqualifyModalOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+    <div class="bg-[var(--sf)] border border-[var(--ln)] rounded-2xl w-full max-w-md shadow-2xl p-6">
+      <div class="flex items-center justify-between pb-3 border-b border-[var(--ln)] mb-4">
+        <h2 class="text-base font-bold text-amber-600 flex items-center gap-1.5">
+          <i class="mi">cancel</i> Disqualify Lead
+        </h2>
+        <button (click)="isDisqualifyModalOpen.set(false)" class="ib text-[var(--mu)]"><i class="mi text-xl">close</i></button>
+      </div>
+
+      <form [formGroup]="disqualifyForm" (ngSubmit)="submitDisqualify()" class="space-y-4">
+        <div class="ff">
+          <label>Disqualification Reason</label>
+          <select formControlName="unqualified_reason">
+            @for (r of unqualifiedReasons; track r) {
+              <option [value]="r">{{ r }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="ff">
+          <label>Justification Note</label>
+          <textarea rows="3" formControlName="unqualified_note" placeholder="Detailed explanation for reporting and audit trail..."></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2.5 pt-3 border-t border-[var(--ln)]">
+          <button type="button" (click)="isDisqualifyModalOpen.set(false)" class="btn bo text-xs py-2 px-4 rounded-xl">Cancel</button>
+          <button type="submit" class="btn text-xs py-2 px-4 rounded-xl font-bold bg-amber-600 text-white hover:bg-amber-700">Confirm Disqualification</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+
+<!-- =========================================================================
+     MODAL 6: REOPEN LEAD MODAL
+     ========================================================================= -->
+@if (isReopenModalOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+    <div class="bg-[var(--sf)] border border-[var(--ln)] rounded-2xl w-full max-w-md shadow-2xl p-6">
+      <div class="flex items-center justify-between pb-3 border-b border-[var(--ln)] mb-4">
+        <h2 class="text-base font-bold text-blue-600 flex items-center gap-1.5">
+          <i class="mi">replay</i> Reopen Lead
+        </h2>
+        <button (click)="isReopenModalOpen.set(false)" class="ib text-[var(--mu)]"><i class="mi text-xl">close</i></button>
+      </div>
+
+      <form [formGroup]="reopenForm" (ngSubmit)="submitReopen()" class="space-y-4">
+        <div class="ff">
+          <label>Reason for Reopening</label>
+          <textarea rows="3" formControlName="reopen_reason" placeholder="e.g. Client budget revised, new contact established..."></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2.5 pt-3 border-t border-[var(--ln)]">
+          <button type="button" (click)="isReopenModalOpen.set(false)" class="btn bo text-xs py-2 px-4 rounded-xl">Cancel</button>
+          <button type="submit" class="btn bp text-xs py-2 px-4 rounded-xl font-bold">Reopen to Contacted</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+
+<!-- =========================================================================
+     RIGHT DRAWER: CREATE / EDIT LEAD
+     ========================================================================= -->
+@if (isDrawerOpen()) {
+  <div class="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs animate-fadeIn">
+    <div class="bg-[var(--sf)] border-l border-[var(--ln)] w-full max-w-xl h-full flex flex-col shadow-2xl animate-slideLeft">
+      
+      <!-- Drawer Header -->
+      <div class="p-5 border-b border-[var(--ln)] flex items-center justify-between">
+        <div>
+          <span class="text-[10px] font-bold text-[var(--pr)] uppercase tracking-wider block">Lead Management</span>
+          <h2 class="text-lg font-bold text-[var(--hd)]">{{ isEditMode() ? 'Edit Lead: ' + selectedLeadForAction()?.lead_code : 'Register New Lead' }}</h2>
+        </div>
+        <button (click)="closeDrawer()" class="ib text-[var(--mu)] hover:text-[var(--hd)]">
+          <i class="mi text-xl">close</i>
+        </button>
+      </div>
+
+      <!-- Drawer Body Form -->
+      <form [formGroup]="leadForm" (ngSubmit)="submitLeadForm()" class="flex-1 overflow-y-auto p-5 space-y-4">
+        
+        <div class="erp-card-container p-4 space-y-3">
+          <b class="text-xs font-bold uppercase tracking-wider text-[var(--mu)] block">Company &amp; Contact</b>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="ff">
+              <label>Company Name *</label>
+              <input type="text" formControlName="company_name" placeholder="e.g. Ethiopian Agro Enterprise" />
+            </div>
+            <div class="ff">
+              <label>Contact Person *</label>
+              <input type="text" formControlName="contact_person" placeholder="Full name" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="ff">
+              <label>Official Email *</label>
+              <input type="email" formControlName="email" placeholder="name@company.com" />
+            </div>
+            <div class="ff">
+              <label>Phone Number *</label>
+              <input type="tel" formControlName="phone" placeholder="09XXXXXXXX" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="ff">
+              <label>Industry</label>
+              <input type="text" formControlName="industry" />
+            </div>
+            <div class="ff">
+              <label>City</label>
+              <input type="text" formControlName="city" />
+            </div>
+            <div class="ff">
+              <label>Country</label>
+              <input type="text" formControlName="country" />
+            </div>
+          </div>
+        </div>
+
+        <div class="erp-card-container p-4 space-y-3">
+          <b class="text-xs font-bold uppercase tracking-wider text-[var(--mu)] block">Inquiry &amp; Requirement</b>
+
+          <div class="ff">
+            <label>Lead Title / Requirement Brief *</label>
+            <input type="text" formControlName="lead_name" placeholder="e.g. Carton Packaging Supply Agreement" />
+          </div>
+
+          <div class="ff">
+            <label>Main Product / Service Interested In *</label>
+            <input type="text" formControlName="interested_in" placeholder="e.g. Heavy-Duty Corrugated Master Packaging" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="ff">
+              <label>Estimated Value</label>
+              <input type="number" formControlName="estimated_value" />
+            </div>
+            <div class="ff">
+              <label>Currency</label>
+              <input type="text" formControlName="currency" />
+            </div>
+          </div>
+        </div>
+
+        <div class="erp-card-container p-4 space-y-3">
+          <b class="text-xs font-bold uppercase tracking-wider text-[var(--mu)] block">Source &amp; Assignment</b>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="ff">
+              <label>Source Channel *</label>
+              <select formControlName="source_channel">
+                <option value="Direct inquiry">Direct inquiry</option>
+                <option value="Workshop">Workshop</option>
+                <option value="Campaign">Campaign</option>
+                <option value="Event">Event</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="Referral">Referral</option>
+                <option value="Website">Website</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="ff">
+              <label>Source Detail</label>
+              <input type="text" formControlName="source_detail" placeholder="Event or referrer name" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="ff">
+              <label>Assign To</label>
+              <select formControlName="assigned_to_name">
+                @for (m of teamMembers; track m) {
+                  <option [value]="m">{{ m }}</option>
+                }
+              </select>
+            </div>
+            <div class="ff">
+              <label>Next Follow-Up Date *</label>
+              <input type="date" formControlName="follow_up_date" />
+            </div>
+          </div>
+
+          <div class="ff">
+            <label>Internal Notes</label>
+            <textarea rows="3" formControlName="note" placeholder="Initial client requirements, volume expectations..."></textarea>
+          </div>
+        </div>
+
+      </form>
+
+      <!-- Drawer Footer -->
+      <div class="p-4 border-t border-[var(--ln)] flex items-center justify-end gap-2.5">
+        <button type="button" (click)="closeDrawer()" class="btn bo text-xs py-2 px-4 rounded-xl">Cancel</button>
+        <button type="button" (click)="submitLeadForm()" class="btn bp text-xs py-2 px-4 rounded-xl font-bold">
+          {{ isEditMode() ? 'Save Changes' : 'Create Lead' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
