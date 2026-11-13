@@ -15,7 +15,7 @@ import { MarketingService } from '../../services/marketing.service';
            ===================================================================== -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <span class="text-xs font-bold tracking-wider text-[var(--mu)] uppercase block mb-1">CRM System</span>
+          <span class="text-xs font-bold tracking-wider text-[var(--mu)] uppercase block mb-1">CRM</span>
           <h1 class="text-2xl sm:text-3xl font-extrabold text-[var(--hd)] tracking-tight">Marketing Management</h1>
           <h2 class="text-base font-semibold text-[var(--hd)] mt-0.5">Executive Dashboard</h2>
           <p class="text-xs text-[var(--tx)] mt-1 max-w-2xl">

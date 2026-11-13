@@ -54,11 +54,11 @@ interface MenuItem {
           <button 
             (click)="toggleCrm()"
             class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold tracking-wider text-[var(--lbl)] uppercase hover:bg-[var(--chip-bg)] transition-colors text-left"
-            [title]="'CRM & Sales Group'">
+            [title]="'CRM'">
             <div class="flex items-center gap-2.5 min-w-0">
               <i class="mi text-lg text-[var(--pr)]">corporate_fare</i>
               @if (!isCollapsed()) {
-                <span class="truncate">CRM System</span>
+                <span class="truncate">CRM</span>
               }
             </div>
             @if (!isCollapsed()) {
