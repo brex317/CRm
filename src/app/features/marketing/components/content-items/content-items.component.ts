@@ -55,6 +55,9 @@ import { TablePaginationComponent } from '../../../../shared/components/table-pa
                   <i class="mi text-base">publish</i> Publish Live
                 </button>
               }
+              <button (click)="deleteItem(item)" class="btn bo text-xs py-2 px-3.5 rounded-xl font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center gap-1.5" title="Delete this content item">
+                <i class="mi text-base">delete</i> Delete Content
+              </button>
               <button (click)="closeDetailDrawer()" class="btn bo text-xs py-2 px-3 rounded-xl font-medium" title="Close Detail View">
                 <i class="mi text-base">close</i> Close
               </button>
@@ -847,6 +850,9 @@ export class ContentItemsComponent {
     if (confirmed) {
       this.marketingService.deleteContentItem(item.content_id);
       this.toast.info(`Deleted content item.`);
+      if (this.selectedDetailItem()?.content_id === item.content_id) {
+        this.closeDetailDrawer();
+      }
     }
   }
 }

@@ -581,9 +581,14 @@
                         <span class="text-[10px] text-[var(--mu)]">{{ doc.file_size }} &bull; {{ doc.uploaded_date }}</span>
                       </div>
                     </div>
-                    <button class="ib text-[var(--pr)] hover:bg-[var(--sf)] flex-shrink-0" title="Download">
-                      <i class="mi text-lg">download</i>
-                    </button>
+                    <div class="flex items-center gap-1 flex-shrink-0">
+                      <button class="ib text-[var(--pr)] hover:bg-[var(--sf)]" title="Download">
+                        <i class="mi text-lg">download</i>
+                      </button>
+                      <button type="button" (click)="deleteDoc(doc)" class="ib text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30" title="Delete document">
+                        <i class="mi text-lg">delete</i>
+                      </button>
+                    </div>
                   </div>
                 }
               </div>

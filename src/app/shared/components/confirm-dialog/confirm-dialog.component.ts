@@ -21,7 +21,10 @@ import { ConfirmDialogService } from '../../../core/services/confirm-dialog.serv
           (click)="$event.stopPropagation()">
           
           <!-- Top subtle accent bar -->
-          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500"></div>
+          <div 
+            class="absolute top-0 left-0 right-0 h-1"
+            [ngClass]="state.options.type === 'warning' ? 'bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500' : 'bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500'">
+          </div>
 
           <!-- Close X button -->
           <button 
@@ -34,8 +37,14 @@ import { ConfirmDialogService } from '../../../core/services/confirm-dialog.serv
           </button>
 
           <!-- Warning/Delete Icon Badge (Compact & Refined) -->
-          <div class="w-12 h-12 mx-auto mb-3 rounded-xl flex items-center justify-center bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 shadow-sm">
-            <i class="mi text-2xl">delete_forever</i>
+          <div 
+            class="w-12 h-12 mx-auto mb-3 rounded-xl flex items-center justify-center border shadow-sm"
+            [ngClass]="state.options.type === 'warning' 
+              ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900/50' 
+              : 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/50'">
+            <i class="mi text-2xl">
+              {{ state.options.type === 'warning' ? (state.options.title?.toLowerCase()?.includes('close') ? 'lock' : 'warning') : 'delete_forever' }}
+            </i>
           </div>
 
           <!-- Dialog Title -->
@@ -51,7 +60,10 @@ import { ConfirmDialogService } from '../../../core/services/confirm-dialog.serv
           <!-- Highlighted Target Record Pill -->
           @if (state.options.recordName) {
             <div class="mt-3 px-3 py-2 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] text-left flex items-center gap-2">
-              <i class="mi text-sm text-rose-500 shrink-0">inventory_2</i>
+              <i class="mi text-sm shrink-0"
+                 [ngClass]="state.options.type === 'warning' ? 'text-amber-500' : 'text-rose-500'">
+                inventory_2
+              </i>
               <span class="text-xs font-mono font-semibold text-[var(--hd)] truncate flex-1" [title]="state.options.recordName">
                 {{ state.options.recordName }}
               </span>
@@ -77,8 +89,11 @@ import { ConfirmDialogService } from '../../../core/services/confirm-dialog.serv
             <button 
               type="button" 
               (click)="dialog.handleConfirm()"
-              class="flex-1 btn py-2 px-3 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:scale-95 shadow-md shadow-rose-600/20 flex items-center justify-center gap-1.5 transition-all">
-              <i class="mi text-sm">delete</i>
+              class="flex-1 btn py-2 px-3 rounded-xl text-xs font-bold text-white active:scale-95 shadow-md flex items-center justify-center gap-1.5 transition-all"
+              [ngClass]="state.options.type === 'warning'
+                ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-600/20'
+                : 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20'">
+              <i class="mi text-sm">{{ state.options.type === 'warning' ? (state.options.title?.toLowerCase()?.includes('close') ? 'lock' : 'check') : 'delete' }}</i>
               <span>{{ state.options.confirmText }}</span>
             </button>
           </div>

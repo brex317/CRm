@@ -47,6 +47,9 @@ import { TablePaginationComponent } from '../../../../shared/components/table-pa
                   <i class="mi text-base">task_alt</i> Complete Activity
                 </button>
               }
+              <button (click)="deleteActivity(act)" class="btn bo text-xs py-2 px-3.5 rounded-xl font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center gap-1.5" title="Delete this activity">
+                <i class="mi text-base">delete</i> Delete Activity
+              </button>
               <button (click)="closeDetailDrawer()" class="btn bo text-xs py-2 px-3 rounded-xl font-medium" title="Close Detail View">
                 <i class="mi text-base">close</i> Close
               </button>
@@ -847,6 +850,9 @@ export class MarketingActivitiesComponent {
     if (confirmed) {
       this.marketingService.deleteActivity(act.activity_id);
       this.toast.info(`Deleted activity ${act.activity_code}.`);
+      if (this.selectedDetailActivity()?.activity_id === act.activity_id) {
+        this.closeDetailDrawer();
+      }
     }
   }
 }

@@ -344,6 +344,22 @@ export class LeadDetailComponent implements OnInit {
     this.isUploadDocModalOpen.set(false);
   }
 
+  async deleteDoc(doc: any): Promise<void> {
+    const l = this.lead();
+    if (!l || !l.documents) return;
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete Document',
+      message: 'Do you want to remove this attached document?',
+      recordName: doc.file_name,
+      confirmText: 'Delete Document',
+      cancelText: 'Cancel'
+    });
+    if (confirmed) {
+      l.documents = l.documents.filter(d => d.doc_id !== doc.doc_id);
+      this.toast.info(`Document "${doc.file_name}" removed.`);
+    }
+  }
+
   isFollowUpOverdue(dateStr: string, status: LeadStatus): boolean {
     if (status === 'Converted' || status === 'Unqualified') return false;
     if (!dateStr) return false;

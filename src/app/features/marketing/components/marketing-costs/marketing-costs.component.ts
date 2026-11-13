@@ -47,6 +47,9 @@ import { TablePaginationComponent } from '../../../../shared/components/table-pa
                   <i class="mi text-base">check_circle</i> Mark Paid
                 </button>
               }
+              <button (click)="deleteCost(cost)" class="btn bo text-xs py-2 px-3.5 rounded-xl font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center gap-1.5" title="Delete this cost">
+                <i class="mi text-base">delete</i> Delete Cost
+              </button>
               <button (click)="closeDetailDrawer()" class="btn bo text-xs py-2 px-3 rounded-xl font-medium" title="Close Detail View">
                 <i class="mi text-base">close</i> Close
               </button>
@@ -752,6 +755,9 @@ export class MarketingCostsComponent {
     if (confirmed) {
       this.marketingService.deleteCost(cost.cost_id);
       this.toast.info(`Deleted cost line.`);
+      if (this.selectedDetailCost()?.cost_id === cost.cost_id) {
+        this.closeDetailDrawer();
+      }
     }
   }
 }

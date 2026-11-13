@@ -48,10 +48,13 @@ import { TablePaginationComponent } from '../../../../shared/components/table-pa
                 </button>
               }
               @if (plan.status === 'Approved') {
-                <button (click)="closePlan(plan)" class="btn bo text-xs py-2 px-3.5 rounded-xl font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center gap-1.5">
+                <button (click)="closePlan(plan)" class="btn bo text-xs py-2 px-3.5 rounded-xl font-semibold text-amber-600 border-amber-200 hover:bg-amber-50 dark:hover:bg-amber-950/30 flex items-center gap-1.5">
                   <i class="mi text-base">lock</i> Close Plan
                 </button>
               }
+              <button (click)="deletePlan(plan)" class="btn bo text-xs py-2 px-3.5 rounded-xl font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center gap-1.5" title="Delete this plan">
+                <i class="mi text-base">delete</i> Delete Plan
+              </button>
               <button (click)="closeDetailDrawer()" class="btn bo text-xs py-2 px-3 rounded-xl font-medium" title="Close Detail View">
                 <i class="mi text-base">close</i> Close
               </button>
@@ -797,10 +800,21 @@ export class MarketingPlansComponent {
     this.toast.success(`Plan ${plan.plan_code} approved.`);
   }
 
-  closePlan(plan: MarketingPlan): void {
+  async closePlan(plan: MarketingPlan): Promise<void> {
     this.closeActiveMenu();
-    this.marketingService.updatePlan(plan.plan_id, { status: 'Closed' });
-    this.toast.info(`Plan ${plan.plan_code} closed.`);
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Close Marketing Plan',
+      message: 'Do you want to close this marketing plan container?',
+      recordName: `${plan.plan_code} • ${plan.plan_name}`,
+      details: 'Closing this plan locks its budget and prevents new activities from being linked to it.',
+      confirmText: 'Close Plan',
+      cancelText: 'Cancel',
+      type: 'warning'
+    });
+    if (confirmed) {
+      this.marketingService.updatePlan(plan.plan_id, { status: 'Closed' });
+      this.toast.info(`Plan ${plan.plan_code} closed.`);
+    }
   }
 
   async deletePlan(plan: MarketingPlan): Promise<void> {
@@ -815,6 +829,9 @@ export class MarketingPlansComponent {
     if (confirmed) {
       this.marketingService.deletePlan(plan.plan_id);
       this.toast.info(`Deleted plan ${plan.plan_code}.`);
+      if (this.selectedDetailPlan()?.plan_id === plan.plan_id) {
+        this.closeDetailDrawer();
+      }
     }
   }
 }

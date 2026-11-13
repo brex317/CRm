@@ -47,6 +47,9 @@ import { TablePaginationComponent } from '../../../../shared/components/table-pa
                   <i class="mi text-base">verified</i> Review &amp; Approve
                 </button>
               }
+              <button (click)="deleteReport(rep)" class="btn bo text-xs py-2 px-3.5 rounded-xl font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center gap-1.5" title="Delete this report">
+                <i class="mi text-base">delete</i> Delete Report
+              </button>
               <button (click)="closeDetailDrawer()" class="btn bo text-xs py-2 px-3 rounded-xl font-medium" title="Close Detail View">
                 <i class="mi text-base">close</i> Close
               </button>
@@ -740,6 +743,9 @@ export class ActivityReportsComponent {
     if (confirmed) {
       this.marketingService.deleteReport(rep.report_id);
       this.toast.info(`Deleted report.`);
+      if (this.selectedDetailReport()?.report_id === rep.report_id) {
+        this.closeDetailDrawer();
+      }
     }
   }
 }
