@@ -1,9 +1,9 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LeadService } from '../../services/lead.service';
-import { Lead, LeadStatus, SourceChannel, BantCriterion, QualificationOutcome } from '../../models/lead.model';
+import { Lead, LeadStatus } from '../../models/lead.model';
 import { ToastService } from '../../../../core/services/toast.service';
 import { TablePaginationComponent } from '../../../../shared/components/table-pagination/table-pagination.component';
 

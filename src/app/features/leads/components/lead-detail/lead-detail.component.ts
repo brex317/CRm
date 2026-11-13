@@ -1,9 +1,9 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LeadService } from '../../services/lead.service';
-import { Lead, LeadStatus, LeadActivity, ActivityType } from '../../models/lead.model';
+import { LeadStatus, ActivityType } from '../../models/lead.model';
 import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
@@ -14,7 +14,6 @@ import { ToastService } from '../../../../core/services/toast.service';
 })
 export class LeadDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
   private leadService = inject(LeadService);
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);

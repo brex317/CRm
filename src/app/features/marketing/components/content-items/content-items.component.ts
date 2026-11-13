@@ -2,7 +2,7 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MarketingService } from '../../services/marketing.service';
-import { ContentItem, Platform, ContentFormat, ContentStatus } from '../../models/content-item.model';
+import { ContentItem, ContentStatus } from '../../models/content-item.model';
 import { ToastService } from '../../../../core/services/toast.service';
 import { TablePaginationComponent } from '../../../../shared/components/table-pagination/table-pagination.component';
 
