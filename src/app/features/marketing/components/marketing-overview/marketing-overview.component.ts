@@ -11,7 +11,7 @@ import { MarketingService } from '../../services/marketing.service';
     <div class="space-y-6">
       
       <!-- =====================================================================
-           PAGE HEADER & QUICK ACTIONS
+           PAGE HEADER & CLEAN ACTION BUTTONS (Single Row, No Wrapping, No Duplication)
            ===================================================================== -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -23,31 +23,29 @@ import { MarketingService } from '../../services/marketing.service';
           </p>
         </div>
         
-        <div class="flex items-center gap-2.5 flex-wrap">
-          <a routerLink="/marketing/plans" class="btn bo text-xs py-2 px-3.5 rounded-xl font-medium inline-flex items-center gap-1.5 hover:bg-[var(--chip-bg)] transition-colors">
-            <i class="mi text-base text-[var(--mu)]">event_note</i> Plans ({{ plans().length }})
+        <!-- Standard Single-Row Actions matching Reference ERP -->
+        <div class="flex items-center gap-2.5 flex-nowrap flex-shrink-0">
+          <a routerLink="/marketing/plans" class="btn bo text-xs py-2 px-3.5 rounded-xl font-semibold inline-flex items-center gap-1.5 hover:bg-[var(--chip-bg)] transition-colors whitespace-nowrap">
+            <i class="mi text-base text-[var(--mu)]">calendar_month</i> Plans ({{ plans().length }})
           </a>
-          <a routerLink="/leads" class="btn bo text-xs py-2 px-3.5 rounded-xl font-medium inline-flex items-center gap-1.5 hover:bg-[var(--chip-bg)] transition-colors">
-            <i class="mi text-base text-[var(--pr)]">filter_alt</i> Lead Register
-          </a>
-          <a routerLink="/marketing/activities" class="btn bp text-xs py-2 px-3.5 rounded-xl font-bold inline-flex items-center gap-1.5 shadow-sm">
+          <a routerLink="/marketing/activities" class="btn bp text-xs py-2 px-4 rounded-xl font-bold inline-flex items-center gap-1.5 shadow-sm whitespace-nowrap">
             <i class="mi text-base">add</i> New Activity
           </a>
         </div>
       </div>
 
       <!-- =====================================================================
-           6 TOP EXECUTIVE KPI CARDS (Harmonized Icons, Spacing, and Typography)
+           6 TOP EXECUTIVE KPI CARDS (Exactly One Icon Each, Zero Duplication, No Clipping)
            ===================================================================== -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5">
         
         <!-- 1. Marketing Plans -->
-        <div class="kpi-card hover:border-[var(--pr)] transition-all duration-200">
-          <div class="min-w-0 flex-1">
+        <div class="kpi-card hover:border-[var(--pr)] hover:shadow-xs transition-all duration-200">
+          <div class="min-w-0 flex-1 pr-2">
             <div class="kpi-card-lbl uppercase text-[11px] font-bold tracking-wider text-[var(--mu)] mb-1">Marketing Plans</div>
-            <div class="kpi-card-val text-2xl font-black text-[var(--hd)] tracking-tight">{{ totalPlans() }}</div>
-            <div class="flex items-center gap-1 text-[11px] font-semibold text-blue-600 dark:text-sky-400 mt-1 truncate">
-              <i class="mi text-xs">verified</i> {{ approvedPlans() }} Approved · {{ pendingPlans() }} Draft
+            <div class="kpi-card-val text-xl sm:text-2xl font-black text-[var(--hd)] tracking-tight">{{ totalPlans() }}</div>
+            <div class="text-[11px] font-semibold text-blue-600 dark:text-sky-400 mt-1 truncate">
+              {{ approvedPlans() }} Approved · {{ pendingPlans() }} Draft
             </div>
           </div>
           <div class="kpi-icon-badge bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-sky-400">
@@ -56,12 +54,12 @@ import { MarketingService } from '../../services/marketing.service';
         </div>
 
         <!-- 2. Active Campaigns -->
-        <div class="kpi-card hover:border-emerald-500 transition-all duration-200">
-          <div class="min-w-0 flex-1">
+        <div class="kpi-card hover:border-emerald-500 hover:shadow-xs transition-all duration-200">
+          <div class="min-w-0 flex-1 pr-2">
             <div class="kpi-card-lbl uppercase text-[11px] font-bold tracking-wider text-[var(--mu)] mb-1">Active Campaigns</div>
-            <div class="kpi-card-val text-2xl font-black text-[var(--hd)] tracking-tight">{{ activeCampaignsCount() }}</div>
-            <div class="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 mt-1 truncate">
-              <i class="mi text-xs">play_circle</i> In Progress &amp; Live
+            <div class="kpi-card-val text-xl sm:text-2xl font-black text-[var(--hd)] tracking-tight">{{ activeCampaignsCount() }}</div>
+            <div class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 mt-1 truncate">
+              In Progress &amp; Live
             </div>
           </div>
           <div class="kpi-icon-badge bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
@@ -69,13 +67,13 @@ import { MarketingService } from '../../services/marketing.service';
           </div>
         </div>
 
-        <!-- 3. Upcoming Activities -->
-        <div class="kpi-card hover:border-indigo-500 transition-all duration-200">
-          <div class="min-w-0 flex-1">
+        <!-- 3. Upcoming Schedule -->
+        <div class="kpi-card hover:border-indigo-500 hover:shadow-xs transition-all duration-200">
+          <div class="min-w-0 flex-1 pr-2">
             <div class="kpi-card-lbl uppercase text-[11px] font-bold tracking-wider text-[var(--mu)] mb-1">Upcoming Schedule</div>
-            <div class="kpi-card-val text-2xl font-black text-[var(--hd)] tracking-tight">{{ upcomingCount() }}</div>
-            <div class="flex items-center gap-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 mt-1 truncate">
-              <i class="mi text-xs">schedule</i> Next 60 Days Pipeline
+            <div class="kpi-card-val text-xl sm:text-2xl font-black text-[var(--hd)] tracking-tight">{{ upcomingCount() }}</div>
+            <div class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 mt-1 truncate">
+              Next 60 Days Pipeline
             </div>
           </div>
           <div class="kpi-icon-badge bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
@@ -83,13 +81,13 @@ import { MarketingService } from '../../services/marketing.service';
           </div>
         </div>
 
-        <!-- 4. Total Marketing Budget Ceiling -->
-        <div class="kpi-card hover:border-sky-500 transition-all duration-200">
-          <div class="min-w-0 flex-1">
+        <!-- 4. Approved Budget -->
+        <div class="kpi-card hover:border-sky-500 hover:shadow-xs transition-all duration-200">
+          <div class="min-w-0 flex-1 pr-2">
             <div class="kpi-card-lbl uppercase text-[11px] font-bold tracking-wider text-[var(--mu)] mb-1">Approved Budget</div>
-            <div class="kpi-card-val text-2xl font-black text-[var(--hd)] tracking-tight">ETB {{ (totalApprovedBudget() / 1000000) | number:'1.1-1' }}M</div>
-            <div class="flex items-center gap-1 text-[11px] font-medium text-[var(--mu)] mt-1 truncate">
-              <i class="mi text-xs">account_balance</i> Annual Ceiling
+            <div class="kpi-card-val text-xl sm:text-2xl font-black text-[var(--hd)] tracking-tight">ETB {{ (totalApprovedBudget() / 1000000) | number:'1.1-1' }}M</div>
+            <div class="text-[11px] font-medium text-[var(--mu)] mt-1 truncate">
+              Annual Authorized
             </div>
           </div>
           <div class="kpi-icon-badge bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400">
@@ -97,13 +95,13 @@ import { MarketingService } from '../../services/marketing.service';
           </div>
         </div>
 
-        <!-- 5. Total Incurred Expenditure -->
-        <div class="kpi-card hover:border-amber-500 transition-all duration-200">
-          <div class="min-w-0 flex-1">
-            <div class="kpi-card-lbl uppercase text-[11px] font-bold tracking-wider text-[var(--mu)] mb-1">Total Expenditure</div>
-            <div class="kpi-card-val text-2xl font-black text-amber-600 dark:text-amber-400 tracking-tight">ETB {{ (totalActualSpend() / 1000) | number:'1.0-0' }}k</div>
-            <div class="flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400 mt-1 truncate">
-              <i class="mi text-xs">trending_down</i> {{ budgetUtilizationPercent() }}% Burn Rate
+        <!-- 5. Total Spend -->
+        <div class="kpi-card hover:border-amber-500 hover:shadow-xs transition-all duration-200">
+          <div class="min-w-0 flex-1 pr-2">
+            <div class="kpi-card-lbl uppercase text-[11px] font-bold tracking-wider text-[var(--mu)] mb-1">Total Spend</div>
+            <div class="kpi-card-val text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 tracking-tight">ETB {{ (totalActualSpend() / 1000) | number:'1.0-0' }}k</div>
+            <div class="text-[11px] font-semibold text-amber-600 dark:text-amber-400 mt-1 truncate">
+              {{ budgetUtilizationPercent() }}% Burn Rate
             </div>
           </div>
           <div class="kpi-icon-badge bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
@@ -111,13 +109,13 @@ import { MarketingService } from '../../services/marketing.service';
           </div>
         </div>
 
-        <!-- 6. Total Leads Generated -->
-        <div class="kpi-card hover:border-purple-500 transition-all duration-200">
-          <div class="min-w-0 flex-1">
+        <!-- 6. Leads Generated -->
+        <div class="kpi-card hover:border-purple-500 hover:shadow-xs transition-all duration-200">
+          <div class="min-w-0 flex-1 pr-2">
             <div class="kpi-card-lbl uppercase text-[11px] font-bold tracking-wider text-[var(--mu)] mb-1">Leads Generated</div>
-            <div class="kpi-card-val text-2xl font-black text-purple-600 dark:text-purple-400 tracking-tight">{{ totalLeads() | number }}</div>
-            <div class="flex items-center gap-1 text-[11px] font-semibold text-purple-600 dark:text-purple-400 mt-1 truncate">
-              <i class="mi text-xs">trending_up</i> {{ leadsCreatedInCrm() }} Leads in CRM
+            <div class="kpi-card-val text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400 tracking-tight">{{ totalLeads() | number }}</div>
+            <div class="text-[11px] font-semibold text-purple-600 dark:text-purple-400 mt-1 truncate">
+              {{ leadsCreatedInCrm() }} Created in CRM
             </div>
           </div>
           <div class="kpi-icon-badge bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
@@ -128,9 +126,7 @@ import { MarketingService } from '../../services/marketing.service';
       </div>
 
       <!-- =====================================================================
-           2-COLUMN DETAILED ANALYTICS:
-           - LEFT: Financial Budget & Expenditure Governance
-           - RIGHT: Campaign Performance & Lead Yield Telemetry
+           2-COLUMN DETAILED ANALYTICS (Single Icon per Micro-Card, Zero Subtitle Icons)
            ===================================================================== -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
@@ -155,7 +151,7 @@ import { MarketingService } from '../../services/marketing.service';
               </a>
             </div>
 
-            <!-- 4 Consistent Financial Micro-Cards -->
+            <!-- 4 Consistent Financial Micro-Cards (Exactly 1 Icon each) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
               
               <!-- 1. Approved Ceiling -->
@@ -166,8 +162,8 @@ import { MarketingService } from '../../services/marketing.service';
                 <div class="min-w-0">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--mu)] block">Approved Ceiling</span>
                   <b class="text-base font-extrabold text-[var(--hd)] block mt-0.5 leading-snug">ETB {{ (totalApprovedBudget() / 1000000) | number:'1.1-2' }}M</b>
-                  <span class="text-[11px] text-[var(--ok)] font-medium inline-flex items-center gap-1 mt-0.5">
-                    <i class="mi text-xs">check_circle</i> 100% Authorized
+                  <span class="text-[11px] text-[var(--ok)] font-medium block mt-0.5">
+                    100% Authorized
                   </span>
                 </div>
               </div>
@@ -180,8 +176,8 @@ import { MarketingService } from '../../services/marketing.service';
                 <div class="min-w-0">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--mu)] block">Actual Spend</span>
                   <b class="text-base font-extrabold text-amber-600 dark:text-amber-400 block mt-0.5 leading-snug">ETB {{ totalActualSpend() | number }}</b>
-                  <span class="text-[11px] text-amber-600 dark:text-amber-400 font-semibold inline-flex items-center gap-1 mt-0.5">
-                    <i class="mi text-xs">trending_down</i> {{ budgetUtilizationPercent() }}% Burn Rate
+                  <span class="text-[11px] text-amber-600 dark:text-amber-400 font-semibold block mt-0.5">
+                    {{ budgetUtilizationPercent() }}% Burn Rate
                   </span>
                 </div>
               </div>
@@ -194,8 +190,8 @@ import { MarketingService } from '../../services/marketing.service';
                 <div class="min-w-0">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--mu)] block">Committed Budget</span>
                   <b class="text-base font-extrabold text-indigo-600 dark:text-indigo-400 block mt-0.5 leading-snug">ETB {{ (totalAllocatedBudget() / 1000) | number:'1.0-0' }}k</b>
-                  <span class="text-[11px] text-[var(--mu)] font-medium inline-flex items-center gap-1 mt-0.5">
-                    <i class="mi text-xs">fact_check</i> {{ allocatedPercent() }}% Allocated
+                  <span class="text-[11px] text-[var(--mu)] font-medium block mt-0.5">
+                    {{ allocatedPercent() }}% Allocated
                   </span>
                 </div>
               </div>
@@ -208,8 +204,8 @@ import { MarketingService } from '../../services/marketing.service';
                 <div class="min-w-0">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--mu)] block">Available Surplus</span>
                   <b class="text-base font-extrabold text-[var(--ok)] block mt-0.5 leading-snug">ETB {{ (remainingBudget() / 1000000) | number:'1.1-2' }}M</b>
-                  <span class="text-[11px] text-[var(--ok)] font-medium inline-flex items-center gap-1 mt-0.5">
-                    <i class="mi text-xs">account_balance</i> Unspent Capital
+                  <span class="text-[11px] text-[var(--ok)] font-medium block mt-0.5">
+                    Unspent Capital
                   </span>
                 </div>
               </div>
@@ -219,9 +215,7 @@ import { MarketingService } from '../../services/marketing.service';
             <!-- Segmented Budget Progress Gauge & Legend -->
             <div class="p-4 rounded-2xl bg-[var(--chip-bg)] border border-[var(--ln)] space-y-2.5">
               <div class="flex items-center justify-between text-xs font-semibold text-[var(--hd)]">
-                <span class="flex items-center gap-1.5">
-                  <i class="mi text-sm text-[var(--pr)]">donut_large</i> Budget Burn &amp; Commitment Progress
-                </span>
+                <span>Budget Burn &amp; Commitment Progress</span>
                 <span class="text-[var(--ok)] font-bold">ETB {{ remainingBudget() | number }} Available</span>
               </div>
               
@@ -272,7 +266,7 @@ import { MarketingService } from '../../services/marketing.service';
               </a>
             </div>
 
-            <!-- 4 Consistent Performance Micro-Cards -->
+            <!-- 4 Consistent Performance Micro-Cards (Exactly 1 Icon each) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
               
               <!-- 1. Audience Reach -->
@@ -283,8 +277,8 @@ import { MarketingService } from '../../services/marketing.service';
                 <div class="min-w-0">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--mu)] block">Audience Reach</span>
                   <b class="text-base font-extrabold text-[var(--hd)] block mt-0.5 leading-snug">{{ totalReach() | number }}</b>
-                  <span class="text-[11px] text-sky-600 dark:text-sky-400 font-medium inline-flex items-center gap-1 mt-0.5">
-                    <i class="mi text-xs">domain</i> Decision Makers
+                  <span class="text-[11px] text-sky-600 dark:text-sky-400 font-medium block mt-0.5">
+                    Decision Makers
                   </span>
                 </div>
               </div>
@@ -297,8 +291,8 @@ import { MarketingService } from '../../services/marketing.service';
                 <div class="min-w-0">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--mu)] block">Total Impressions</span>
                   <b class="text-base font-extrabold text-[var(--hd)] block mt-0.5 leading-snug">{{ totalImpressions() | number }}</b>
-                  <span class="text-[11px] text-[var(--pr)] font-medium inline-flex items-center gap-1 mt-0.5">
-                    <i class="mi text-xs">ads_click</i> Omnichannel Views
+                  <span class="text-[11px] text-[var(--pr)] font-medium block mt-0.5">
+                    Omnichannel Views
                   </span>
                 </div>
               </div>
@@ -311,8 +305,8 @@ import { MarketingService } from '../../services/marketing.service';
                 <div class="min-w-0">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--mu)] block">Interactions</span>
                   <b class="text-base font-extrabold text-[var(--hd)] block mt-0.5 leading-snug">{{ totalEngagements() | number }}</b>
-                  <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium inline-flex items-center gap-1 mt-0.5">
-                    <i class="mi text-xs">percent</i> {{ engagementRate() }}% Response Rate
+                  <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium block mt-0.5">
+                    {{ engagementRate() }}% Response Rate
                   </span>
                 </div>
               </div>
@@ -325,8 +319,8 @@ import { MarketingService } from '../../services/marketing.service';
                 <div class="min-w-0">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--mu)] block">Avg Cost / Lead (CPL)</span>
                   <b class="text-base font-extrabold text-purple-600 dark:text-purple-400 block mt-0.5 leading-snug">ETB {{ avgCostPerLead() | number }}</b>
-                  <span class="text-[11px] text-[var(--ok)] font-medium inline-flex items-center gap-1 mt-0.5">
-                    <i class="mi text-xs">trending_down</i> Under Benchmark
+                  <span class="text-[11px] text-[var(--ok)] font-medium block mt-0.5">
+                    Under Benchmark
                   </span>
                 </div>
               </div>
@@ -336,9 +330,7 @@ import { MarketingService } from '../../services/marketing.service';
             <!-- Lead Acquisition Yield by Channel with Visual Bars -->
             <div class="p-4 rounded-2xl bg-[var(--chip-bg)] border border-[var(--ln)] space-y-3">
               <div class="flex items-center justify-between text-xs font-semibold text-[var(--hd)]">
-                <span class="flex items-center gap-1.5">
-                  <i class="mi text-sm text-purple-600 dark:text-purple-400">leaderboard</i> Lead Acquisition Yield by Channel
-                </span>
+                <span>Lead Acquisition Yield by Channel</span>
                 <span class="text-[var(--mu)] font-normal text-[11px]">Total: {{ totalLeads() }} Leads</span>
               </div>
 
