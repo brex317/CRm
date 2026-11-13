@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MarketingService } from '../../services/marketing.service';
 import { Participant, ParticipantSource, AttendanceStatus } from '../../models/participant.model';
 import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { TablePaginationComponent } from '../../../../shared/components/table-pagination/table-pagination.component';
 
 @Component({
@@ -650,6 +651,7 @@ export class ParticipantsComponent {
   private marketingService = inject(MarketingService);
   private fb = inject(FormBuilder);
   private toast = inject(ToastService);
+  private confirmDialog = inject(ConfirmDialogService);
 
   participants = this.marketingService.participants;
 
@@ -919,9 +921,16 @@ export class ParticipantsComponent {
     this.closeFeedbackDrawer();
   }
 
-  deleteParticipant(p: Participant): void {
+  async deleteParticipant(p: Participant): Promise<void> {
     this.closeActiveMenu();
-    if (confirm(`Delete participant "${p.full_name}"?`)) {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete Participant',
+      message: 'Do you want to delete this participant record?',
+      recordName: `${p.full_name}${p.company_name ? ' (' + p.company_name + ')' : ''}`,
+      confirmText: 'Delete Participant',
+      cancelText: 'Cancel'
+    });
+    if (confirmed) {
       this.marketingService.deleteParticipant(p.participant_id);
       this.toast.info(`Deleted participant.`);
     }

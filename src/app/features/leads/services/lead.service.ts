@@ -77,6 +77,10 @@ export class LeadService {
     );
   }
 
+  deleteLead(id: number): void {
+    this.leadsSignal.update(leads => leads.filter(l => l.lead_id !== id));
+  }
+
   assignLead(id: number, ownerName: string, reason: string): void {
     const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
     this.leadsSignal.update(leads =>

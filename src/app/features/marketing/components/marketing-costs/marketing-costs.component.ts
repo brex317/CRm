@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MarketingService } from '../../services/marketing.service';
 import { MarketingCost, CostType, CostStatus } from '../../models/marketing-cost.model';
 import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { TablePaginationComponent } from '../../../../shared/components/table-pagination/table-pagination.component';
 
 @Component({
@@ -545,6 +546,7 @@ export class MarketingCostsComponent {
   private marketingService = inject(MarketingService);
   private fb = inject(FormBuilder);
   private toast = inject(ToastService);
+  private confirmDialog = inject(ConfirmDialogService);
 
   costs = this.marketingService.costs;
 
@@ -738,9 +740,16 @@ export class MarketingCostsComponent {
     this.toast.success(`Cost marked as Paid.`);
   }
 
-  deleteCost(cost: MarketingCost): void {
+  async deleteCost(cost: MarketingCost): Promise<void> {
     this.closeActiveMenu();
-    if (confirm(`Delete cost "${cost.description}"?`)) {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete Cost Entry',
+      message: 'Do you want to delete this marketing cost record?',
+      recordName: `${cost.cost_code} • ${cost.description} (ETB ${cost.amount.toLocaleString()})`,
+      confirmText: 'Delete Cost',
+      cancelText: 'Cancel'
+    });
+    if (confirmed) {
       this.marketingService.deleteCost(cost.cost_id);
       this.toast.info(`Deleted cost line.`);
     }

@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MarketingService } from '../../services/marketing.service';
 import { ContentItem, ContentStatus } from '../../models/content-item.model';
 import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { TablePaginationComponent } from '../../../../shared/components/table-pagination/table-pagination.component';
 
 @Component({
@@ -618,6 +619,7 @@ export class ContentItemsComponent {
   private marketingService = inject(MarketingService);
   private fb = inject(FormBuilder);
   private toast = inject(ToastService);
+  private confirmDialog = inject(ConfirmDialogService);
 
   contentItems = this.marketingService.contentItems;
 
@@ -833,9 +835,16 @@ export class ContentItemsComponent {
     this.toast.info(`Status updated to ${newStatus}.`);
   }
 
-  deleteItem(item: ContentItem): void {
+  async deleteItem(item: ContentItem): Promise<void> {
     this.closeActiveMenu();
-    if (confirm(`Delete content item "${item.title}"?`)) {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete Content Item',
+      message: 'Do you want to delete this marketing content item?',
+      recordName: `${item.content_code} • ${item.title}`,
+      confirmText: 'Delete Content',
+      cancelText: 'Cancel'
+    });
+    if (confirmed) {
       this.marketingService.deleteContentItem(item.content_id);
       this.toast.info(`Deleted content item.`);
     }

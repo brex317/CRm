@@ -1,10 +1,11 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LeadService } from '../../services/lead.service';
 import { LeadStatus, ActivityType } from '../../models/lead.model';
 import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-lead-detail',
@@ -14,9 +15,11 @@ import { ToastService } from '../../../../core/services/toast.service';
 })
 export class LeadDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private leadService = inject(LeadService);
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
+  private confirmDialog = inject(ConfirmDialogService);
 
   leadId = signal<number>(1);
   lead = computed(() => this.leadService.getLeadById(this.leadId()));
@@ -346,6 +349,23 @@ export class LeadDetailComponent implements OnInit {
     if (!dateStr) return false;
     const today = new Date().toISOString().split('T')[0];
     return dateStr < today;
+  }
+
+  async deleteLead(): Promise<void> {
+    const l = this.lead();
+    if (!l) return;
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete Lead Record',
+      message: 'Do you want to delete this lead record?',
+      recordName: `${l.lead_code} • ${l.lead_name} (${l.company_name})`,
+      confirmText: 'Delete Lead',
+      cancelText: 'Cancel'
+    });
+    if (confirmed) {
+      this.leadService.deleteLead(l.lead_id);
+      this.toast.info(`Deleted lead ${l.lead_code}.`);
+      this.router.navigate(['/leads']);
+    }
   }
 }
 

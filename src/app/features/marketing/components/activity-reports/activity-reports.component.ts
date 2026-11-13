@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MarketingService } from '../../services/marketing.service';
 import { ActivityReport, ReportType } from '../../models/activity-report.model';
 import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { TablePaginationComponent } from '../../../../shared/components/table-pagination/table-pagination.component';
 
 @Component({
@@ -531,6 +532,7 @@ export class ActivityReportsComponent {
   private marketingService = inject(MarketingService);
   private fb = inject(FormBuilder);
   private toast = inject(ToastService);
+  private confirmDialog = inject(ConfirmDialogService);
 
   reports = this.marketingService.reports;
 
@@ -726,9 +728,16 @@ export class ActivityReportsComponent {
     this.toast.success(`Report reviewed.`);
   }
 
-  deleteReport(rep: ActivityReport): void {
+  async deleteReport(rep: ActivityReport): Promise<void> {
     this.closeActiveMenu();
-    if (confirm(`Delete report for "${rep.activity_title}"?`)) {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete Activity Report',
+      message: 'Do you want to delete this activity report?',
+      recordName: `${rep.report_code} • ${rep.activity_title}`,
+      confirmText: 'Delete Report',
+      cancelText: 'Cancel'
+    });
+    if (confirmed) {
       this.marketingService.deleteReport(rep.report_id);
       this.toast.info(`Deleted report.`);
     }

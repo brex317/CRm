@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MarketingService } from '../../services/marketing.service';
 import { MarketingActivity, ActivityType, DeliveryMode } from '../../models/marketing-activity.model';
 import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { TablePaginationComponent } from '../../../../shared/components/table-pagination/table-pagination.component';
 
 @Component({
@@ -615,6 +616,7 @@ export class MarketingActivitiesComponent {
   private marketingService = inject(MarketingService);
   private fb = inject(FormBuilder);
   private toast = inject(ToastService);
+  private confirmDialog = inject(ConfirmDialogService);
 
   activities = this.marketingService.activities;
   participants = this.marketingService.participants;
@@ -833,11 +835,18 @@ export class MarketingActivitiesComponent {
     this.toast.success(`Activity marked completed.`);
   }
 
-  deleteActivity(act: MarketingActivity): void {
+  async deleteActivity(act: MarketingActivity): Promise<void> {
     this.closeActiveMenu();
-    if (confirm(`Delete activity ${act.activity_code}?`)) {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete Activity',
+      message: 'Do you want to delete this marketing activity record?',
+      recordName: `${act.activity_code} • ${act.title}`,
+      confirmText: 'Delete Activity',
+      cancelText: 'Cancel'
+    });
+    if (confirmed) {
       this.marketingService.deleteActivity(act.activity_id);
-      this.toast.info(`Deleted activity.`);
+      this.toast.info(`Deleted activity ${act.activity_code}.`);
     }
   }
 }

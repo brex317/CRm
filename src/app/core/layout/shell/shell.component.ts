@@ -4,11 +4,12 @@ import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from '../header/header.component';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { ToastService } from '../../services/toast.service';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, HeaderComponent, SidebarComponent],
+  imports: [CommonModule, RouterOutlet, HeaderComponent, SidebarComponent, ConfirmDialogComponent],
   template: `
     <div class="flex h-screen overflow-hidden bg-[var(--bg)] text-[var(--tx)]">
       <!-- Responsive Sidebar -->
@@ -23,6 +24,9 @@ import { ToastService } from '../../services/toast.service';
         </main>
       </div>
     </div>
+
+    <!-- Global CRM Confirm Dialog Popup with Full Dimming Backdrop -->
+    <app-confirm-dialog />
 
     <!-- Global CRM Toast Container -->
     <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none">

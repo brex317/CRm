@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MarketingService } from '../../services/marketing.service';
 import { MarketingPlan, PeriodType } from '../../models/marketing-plan.model';
 import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { TablePaginationComponent } from '../../../../shared/components/table-pagination/table-pagination.component';
 
 @Component({
@@ -593,6 +594,7 @@ export class MarketingPlansComponent {
   private marketingService = inject(MarketingService);
   private fb = inject(FormBuilder);
   private toast = inject(ToastService);
+  private confirmDialog = inject(ConfirmDialogService);
 
   plans = this.marketingService.plans;
   activities = this.marketingService.activities;
@@ -801,9 +803,16 @@ export class MarketingPlansComponent {
     this.toast.info(`Plan ${plan.plan_code} closed.`);
   }
 
-  deletePlan(plan: MarketingPlan): void {
+  async deletePlan(plan: MarketingPlan): Promise<void> {
     this.closeActiveMenu();
-    if (confirm(`Delete plan ${plan.plan_code}?`)) {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete Marketing Plan',
+      message: 'Do you want to delete this marketing plan record?',
+      recordName: `${plan.plan_code} • ${plan.plan_name}`,
+      confirmText: 'Delete Plan',
+      cancelText: 'Cancel'
+    });
+    if (confirmed) {
       this.marketingService.deletePlan(plan.plan_id);
       this.toast.info(`Deleted plan ${plan.plan_code}.`);
     }

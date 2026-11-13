@@ -5,6 +5,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { LeadService } from '../../services/lead.service';
 import { Lead, LeadStatus } from '../../models/lead.model';
 import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { TablePaginationComponent } from '../../../../shared/components/table-pagination/table-pagination.component';
 
 @Component({
@@ -18,6 +19,7 @@ export class LeadListComponent {
   private toast = inject(ToastService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
+  private confirmDialog = inject(ConfirmDialogService);
 
   leads = this.leadService.leads;
   totalLeads = this.leadService.totalLeads;
@@ -444,5 +446,20 @@ export class LeadListComponent {
     if (!dateStr) return false;
     const today = new Date().toISOString().split('T')[0];
     return dateStr === today;
+  }
+
+  async deleteLead(lead: Lead): Promise<void> {
+    this.activeMenuId.set(null);
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete Lead Record',
+      message: 'Do you want to delete this lead record?',
+      recordName: `${lead.lead_code} • ${lead.lead_name} (${lead.company_name})`,
+      confirmText: 'Delete Lead',
+      cancelText: 'Cancel'
+    });
+    if (confirmed) {
+      this.leadService.deleteLead(lead.lead_id);
+      this.toast.info(`Deleted lead ${lead.lead_code}.`);
+    }
   }
 }
