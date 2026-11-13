@@ -9,81 +9,76 @@ import { ConfirmDialogService } from '../../../core/services/confirm-dialog.serv
   template: `
     @if (dialog.state(); as state) {
       <div 
-        class="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md transition-all animate-fadeIn"
+        class="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-900/35 backdrop-blur-[2px] transition-all animate-fadeIn"
         (click)="onBackdropClick($event)"
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-dialog-title">
         
         <div 
-          class="relative w-full max-w-md rounded-2xl bg-[var(--sf)] border border-[var(--ln)] shadow-2xl p-6 sm:p-7 text-center overflow-hidden"
-          style="animation: modalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);"
+          class="relative w-full max-w-[390px] rounded-2xl bg-[var(--sf)] border border-[var(--ln)] shadow-2xl p-5 sm:p-6 text-center overflow-hidden"
+          style="animation: modalIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);"
           (click)="$event.stopPropagation()">
           
-          <!-- Top subtle glow/accent bar -->
+          <!-- Top subtle accent bar -->
           <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500"></div>
 
           <!-- Close X button -->
           <button 
             type="button"
             (click)="dialog.handleCancel()"
-            class="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-[var(--mu)] hover:text-[var(--hd)] hover:bg-[var(--chip-bg)] transition-colors"
+            class="absolute top-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center text-[var(--mu)] hover:text-[var(--hd)] hover:bg-[var(--chip-bg)] transition-colors"
             title="Cancel"
             aria-label="Close dialog">
-            <i class="mi text-xl">close</i>
+            <i class="mi text-lg">close</i>
           </button>
 
-          <!-- Warning/Danger Icon Badge -->
-          <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 shadow-inner">
-            <i class="mi text-3xl">delete_forever</i>
+          <!-- Warning/Delete Icon Badge (Compact & Refined) -->
+          <div class="w-12 h-12 mx-auto mb-3 rounded-xl flex items-center justify-center bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 shadow-sm">
+            <i class="mi text-2xl">delete_forever</i>
           </div>
 
           <!-- Dialog Title -->
-          <h3 id="confirm-dialog-title" class="text-xl font-black text-[var(--hd)] tracking-tight">
+          <h3 id="confirm-dialog-title" class="text-base sm:text-lg font-bold text-[var(--hd)] tracking-tight">
             {{ state.options.title }}
           </h3>
 
           <!-- Primary Question -->
-          <p class="mt-2 text-sm text-[var(--tx)] font-medium leading-relaxed">
+          <p class="mt-1 text-xs text-[var(--tx)] font-medium leading-relaxed">
             {{ state.options.message }}
           </p>
 
-          <!-- Highlighted Record Identity Box -->
+          <!-- Highlighted Target Record Pill -->
           @if (state.options.recordName) {
-            <div class="mt-3.5 px-4 py-2.5 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] text-left flex items-start gap-2.5">
-              <i class="mi text-base text-rose-500 mt-0.5 shrink-0">inventory_2</i>
-              <div class="min-w-0 flex-1">
-                <span class="block text-[10px] font-bold uppercase tracking-wider text-[var(--mu)]">Target Record</span>
-                <span class="block text-xs font-mono font-bold text-[var(--hd)] truncate" [title]="state.options.recordName">
-                  {{ state.options.recordName }}
-                </span>
-              </div>
-            </div>
-          }
-
-          <!-- Irreversible Action Notice -->
-          @if (state.options.details) {
-            <div class="mt-3 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-left flex items-center gap-2">
-              <i class="mi text-sm text-amber-500 shrink-0">warning</i>
-              <span class="text-[11px] text-amber-700 dark:text-amber-400 font-medium leading-tight">
-                {{ state.options.details }}
+            <div class="mt-3 px-3 py-2 rounded-xl bg-[var(--chip-bg)] border border-[var(--ln)] text-left flex items-center gap-2">
+              <i class="mi text-sm text-rose-500 shrink-0">inventory_2</i>
+              <span class="text-xs font-mono font-semibold text-[var(--hd)] truncate flex-1" [title]="state.options.recordName">
+                {{ state.options.recordName }}
               </span>
             </div>
           }
 
-          <!-- Action Buttons -->
-          <div class="mt-6 flex items-center gap-3">
+          <!-- Warning Subtext -->
+          @if (state.options.details) {
+            <p class="mt-2.5 text-[11px] text-[var(--mu)] flex items-center justify-center gap-1">
+              <i class="mi text-xs text-amber-500">warning</i>
+              <span>{{ state.options.details }}</span>
+            </p>
+          }
+
+          <!-- Action Buttons (Compact & Balanced) -->
+          <div class="mt-5 flex items-center gap-2.5">
             <button 
               type="button" 
               (click)="dialog.handleCancel()"
-              class="flex-1 btn bo py-2.5 px-4 rounded-xl text-xs font-bold text-[var(--tx)] hover:bg-[var(--chip-bg)] transition-colors">
+              class="flex-1 btn bo py-2 px-3 rounded-xl text-xs font-semibold text-[var(--tx)] hover:bg-[var(--chip-bg)] transition-colors">
               {{ state.options.cancelText }}
             </button>
             <button 
               type="button" 
               (click)="dialog.handleConfirm()"
-              class="flex-1 btn py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:scale-95 shadow-lg shadow-rose-600/25 flex items-center justify-center gap-1.5 transition-all">
-              <i class="mi text-base">delete</i>
+              class="flex-1 btn py-2 px-3 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:scale-95 shadow-md shadow-rose-600/20 flex items-center justify-center gap-1.5 transition-all">
+              <i class="mi text-sm">delete</i>
               <span>{{ state.options.confirmText }}</span>
             </button>
           </div>
@@ -109,4 +104,3 @@ export class ConfirmDialogComponent {
     }
   }
 }
-
